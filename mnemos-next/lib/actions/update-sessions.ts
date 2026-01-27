@@ -78,7 +78,8 @@ export async function getUpdateSessionById(id: number) {
               site: true
             }
           },
-          task: true
+          task: true,
+          software: true
         },
         orderBy: [
           { machine: { site: { name: 'asc' } } },
@@ -145,31 +146,123 @@ export async function startUpdateSession(id: number) {
 }
 
 export async function completeUpdateSession(id: number) {
-  await prisma.updateSession.update({
-    where: { id },
-    data: {
-      completedAt: new Date()
+  // Récupérer toutes les tâches COMPLETED de type SOFTWARE_REPLACEMENT de cette session
+  const completedSoftwareReplacements = await prisma.updateTask.findMany({
+    where: {
+      updateSessionId: id,
+      status: 'COMPLETED'
+    },
+    include: {
+      task: true
+    }
+  });
+
+  // Filtrer uniquement les tâches de remplacement de logiciel avec les données complètes
+  const replacementsToProcess = completedSoftwareReplacements.filter(
+    ut => ut.task.type === 'SOFTWARE_REPLACEMENT' && ut.softwareId && ut.targetVersion
+  );
+
+  // Traiter les remplacements de logiciels dans une transaction
+  await prisma.$transaction(async (tx) => {
+    // Marquer la session comme terminée
+    await tx.updateSession.update({
+      where: { id },
+      data: {
+        completedAt: new Date()
+      }
+    });
+
+    // Traiter chaque remplacement
+    for (const replacement of replacementsToProcess) {
+      const { machineId, softwareId, targetVersion } = replacement;
+
+      // Vérifier si une installation identique existe déjà (même machine, logiciel, version, et non retirée)
+      const existingInstallation = await tx.installation.findFirst({
+        where: {
+          machineId,
+          softwareId: softwareId!,
+          version: targetVersion!,
+          removedAt: null
+        }
+      });
+
+      // Si l'installation n'existe pas déjà, procéder à la mise à jour
+      if (!existingInstallation) {
+        // Fermer l'ancienne installation si elle existe (différente version)
+        await tx.installation.updateMany({
+          where: {
+            machineId,
+            softwareId: softwareId!,
+            removedAt: null
+          },
+          data: {
+            removedAt: new Date()
+          }
+        });
+
+        // Créer la nouvelle installation
+        await tx.installation.create({
+          data: {
+            machineId,
+            softwareId: softwareId!,
+            version: targetVersion!,
+            installedAt: new Date()
+          }
+        });
+      }
     }
   });
 
   revalidatePath(`/updates/${id}`);
+  revalidatePath('/updates');
+  revalidatePath('/sites');
+}
+
+export async function cancelStartUpdateSession(id: number) {
+  await prisma.updateSession.update({
+    where: { id },
+    data: {
+      startedAt: null
+    }
+  });
+
+  revalidatePath(`/updates/${id}`);
+  revalidatePath('/updates');
+  redirect(`/updates/${id}/prepare`);
+}
+
+export async function reopenUpdateSession(id: number) {
+  await prisma.updateSession.update({
+    where: { id },
+    data: {
+      completedAt: null
+    }
+  });
+
+  revalidatePath(`/updates/${id}`);
+  revalidatePath('/updates');
 }
 
 // Ajouter des tâches à une session
 export async function addTasksToSession(
   sessionId: number,
   machineIds: number[],
-  taskIds: number[]
+  taskIds: number[],
+  softwareReplacements?: Record<number, { softwareId: number; targetVersion: string }>
 ) {
   const tasks = [];
 
   for (const machineId of machineIds) {
     for (const taskId of taskIds) {
+      const softwareData = softwareReplacements?.[taskId];
+
       tasks.push({
         updateSessionId: sessionId,
         machineId,
         taskId,
-        status: 'PENDING' as const
+        status: 'PENDING' as const,
+        softwareId: softwareData?.softwareId,
+        targetVersion: softwareData?.targetVersion,
       });
     }
   }
@@ -208,4 +301,5 @@ export async function updateTaskStatus(
 
   // Note: On ne fait pas de revalidatePath ici pour éviter trop de revalidations
   // Le composant utilisera des mutations optimistes
+  // La mise à jour des installations pour les SOFTWARE_REPLACEMENT se fait lors de la finalisation de la session
 }

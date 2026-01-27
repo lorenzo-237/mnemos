@@ -9,36 +9,54 @@ import { FolderIcon, Cancel01Icon, FilterIcon } from '@hugeicons/core-free-icons
 interface SitesFilterProps {
   folders: Array<{ id: number; name: string }>;
   tags: Array<{ id: number; name: string }>;
-  selectedFolderId?: number;
-  selectedTagId?: number;
+  selectedFolderIds: number[];
+  selectedTagIds: number[];
 }
 
 export function SitesFilter({
   folders,
   tags,
-  selectedFolderId,
-  selectedTagId,
+  selectedFolderIds,
+  selectedTagIds,
 }: SitesFilterProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
   const handleFolderClick = (folderId: number) => {
     const params = new URLSearchParams(searchParams.toString());
-    if (selectedFolderId === folderId) {
-      params.delete('folderId');
+    params.delete('folderIds');
+
+    let newFolderIds: number[];
+    if (selectedFolderIds.includes(folderId)) {
+      // Remove folder if already selected
+      newFolderIds = selectedFolderIds.filter(id => id !== folderId);
     } else {
-      params.set('folderId', folderId.toString());
+      // Add folder to selection
+      newFolderIds = [...selectedFolderIds, folderId];
     }
+
+    // Add all selected folder IDs as separate params
+    newFolderIds.forEach(id => params.append('folderIds', id.toString()));
+
     router.push(`/sites?${params.toString()}`);
   };
 
   const handleTagClick = (tagId: number) => {
     const params = new URLSearchParams(searchParams.toString());
-    if (selectedTagId === tagId) {
-      params.delete('tagId');
+    params.delete('tagIds');
+
+    let newTagIds: number[];
+    if (selectedTagIds.includes(tagId)) {
+      // Remove tag if already selected
+      newTagIds = selectedTagIds.filter(id => id !== tagId);
     } else {
-      params.set('tagId', tagId.toString());
+      // Add tag to selection
+      newTagIds = [...selectedTagIds, tagId];
     }
+
+    // Add all selected tag IDs as separate params
+    newTagIds.forEach(id => params.append('tagIds', id.toString()));
+
     router.push(`/sites?${params.toString()}`);
   };
 
@@ -46,7 +64,7 @@ export function SitesFilter({
     router.push('/sites');
   };
 
-  const hasActiveFilters = selectedFolderId !== undefined || selectedTagId !== undefined;
+  const hasActiveFilters = selectedFolderIds.length > 0 || selectedTagIds.length > 0;
 
   if (folders.length === 0 && tags.length === 0) {
     return null;
@@ -65,7 +83,7 @@ export function SitesFilter({
             {folders.map((folder) => (
               <Badge
                 key={folder.id}
-                variant={selectedFolderId === folder.id ? 'default' : 'outline'}
+                variant={selectedFolderIds.includes(folder.id) ? 'default' : 'outline'}
                 className="cursor-pointer"
                 onClick={() => handleFolderClick(folder.id)}
               >
@@ -87,7 +105,7 @@ export function SitesFilter({
             {tags.map((tag) => (
               <Badge
                 key={tag.id}
-                variant={selectedTagId === tag.id ? 'default' : 'secondary'}
+                variant={selectedTagIds.includes(tag.id) ? 'default' : 'secondary'}
                 className="cursor-pointer"
                 onClick={() => handleTagClick(tag.id)}
               >

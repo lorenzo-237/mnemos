@@ -51,7 +51,7 @@ export function FolderFormDialog({ folder, trigger }: FolderFormDialogProps) {
     <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger asChild>{trigger}</AlertDialogTrigger>
 
-      <AlertDialogContent>
+      <AlertDialogContent className="max-w-2xl">
         <form action={handleSubmit}>
           <AlertDialogHeader>
             <AlertDialogTitle>

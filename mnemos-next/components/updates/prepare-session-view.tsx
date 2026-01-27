@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -11,19 +12,41 @@ import { DynamicIcon } from '@/components/shared/dynamic-icon';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { PlayIcon, PlusSignIcon } from '@hugeicons/core-free-icons';
 import { addTasksToSession, startUpdateSession } from '@/lib/actions/update-sessions';
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogFooter,
+  AlertDialogCancel,
+} from '@/components/ui/alert-dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Field, FieldLabel } from '@/components/ui/field';
+import { Input } from '@/components/ui/input';
 
 interface PrepareSessionViewProps {
   session: any;
   availableMachines: any[];
   tasks: any[];
+  softwares: any[];
 }
 
-export function PrepareSessionView({ session, availableMachines, tasks }: PrepareSessionViewProps) {
+export function PrepareSessionView({ session, availableMachines, tasks, softwares }: PrepareSessionViewProps) {
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
 
   const [selectedMachines, setSelectedMachines] = useState<number[]>([]);
   const [selectedTasks, setSelectedTasks] = useState<number[]>([]);
+
+  // État pour le dialogue de configuration des remplacements de logiciels
+  const [showSoftwareDialog, setShowSoftwareDialog] = useState(false);
+  const [softwareReplacements, setSoftwareReplacements] = useState<Record<number, { softwareId: number; targetVersion: string }>>({});
 
   const clientMachines = availableMachines.filter(m => m.type === 'CLIENT');
   const serverMachines = availableMachines.filter(m => m.type === 'SERVER');
@@ -73,27 +96,66 @@ export function PrepareSessionView({ session, availableMachines, tasks }: Prepar
 
   const handleAddTasks = () => {
     if (selectedMachines.length === 0 || selectedTasks.length === 0) {
-      alert('Veuillez sélectionner au moins une machine et une tâche');
+      toast.warning('Veuillez sélectionner au moins une machine et une tâche');
       return;
     }
 
+    // Vérifier si des tâches sélectionnées sont de type SOFTWARE_REPLACEMENT
+    const softwareReplacementTasks = tasks.filter(
+      (task) => selectedTasks.includes(task.id) && task.type === 'SOFTWARE_REPLACEMENT'
+    );
+
+    if (softwareReplacementTasks.length > 0) {
+      // Initialiser les remplacements de logiciels pour les tâches concernées
+      const initialReplacements: Record<number, { softwareId: number; targetVersion: string }> = {};
+      softwareReplacementTasks.forEach((task) => {
+        if (!softwareReplacements[task.id]) {
+          initialReplacements[task.id] = {
+            softwareId: softwares[0]?.id || 0,
+            targetVersion: ''
+          };
+        } else {
+          initialReplacements[task.id] = softwareReplacements[task.id];
+        }
+      });
+      setSoftwareReplacements(initialReplacements);
+      setShowSoftwareDialog(true);
+    } else {
+      // Pas de tâches SOFTWARE_REPLACEMENT, ajouter directement
+      performAddTasks();
+    }
+  };
+
+  const performAddTasks = () => {
     startTransition(async () => {
-      await addTasksToSession(session.id, selectedMachines, selectedTasks);
-      setSelectedMachines([]);
-      setSelectedTasks([]);
-      router.refresh();
+      try {
+        await addTasksToSession(session.id, selectedMachines, selectedTasks, softwareReplacements);
+        toast.success(`${selectedTasks.length} tâche(s) ajoutée(s) à ${selectedMachines.length} machine(s)`);
+        setSelectedMachines([]);
+        setSelectedTasks([]);
+        setSoftwareReplacements({});
+        setShowSoftwareDialog(false);
+        router.refresh();
+      } catch (error) {
+        toast.error('Erreur lors de l\'ajout des tâches');
+      }
     });
   };
 
   const handleStartSession = () => {
     if (session.updateTasks.length === 0) {
-      alert('Veuillez ajouter au moins une tâche avant de démarrer');
+      toast.warning('Veuillez ajouter au moins une tâche avant de démarrer');
       return;
     }
 
     startTransition(async () => {
-      await startUpdateSession(session.id);
-      router.push(`/updates/${session.id}/track`);
+      try {
+        await startUpdateSession(session.id);
+        toast.success('Session démarrée avec succès');
+        router.push(`/updates/${session.id}/track`);
+      } catch (error) {
+        toast.error('Erreur lors du démarrage de la session');
+      }
     });
   };
 
@@ -273,6 +335,101 @@ export function PrepareSessionView({ session, availableMachines, tasks }: Prepar
           Ajouter les tâches sélectionnées ({selectedMachines.length} machines × {selectedTasks.length} tâches)
         </Button>
       </div>
+
+      {/* Dialog pour configurer les remplacements de logiciels */}
+      <AlertDialog open={showSoftwareDialog} onOpenChange={setShowSoftwareDialog}>
+        <AlertDialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Configuration des remplacements de logiciels</AlertDialogTitle>
+            <p className="text-sm text-muted-foreground mt-2">
+              Les tâches de remplacement de logiciel nécessitent de sélectionner le logiciel cible et sa version.
+            </p>
+          </AlertDialogHeader>
+
+          <div className="space-y-4 my-4">
+            {tasks
+              .filter((task) => selectedTasks.includes(task.id) && task.type === 'SOFTWARE_REPLACEMENT')
+              .map((task) => (
+                <Card key={task.id}>
+                  <CardHeader>
+                    <div className="flex items-center gap-2">
+                      {task.iconName && <DynamicIcon iconName={task.iconName} className="w-5 h-5" />}
+                      <CardTitle className="text-base">{task.name}</CardTitle>
+                    </div>
+                    {task.description && (
+                      <p className="text-xs text-muted-foreground mt-1">{task.description}</p>
+                    )}
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <Field>
+                      <FieldLabel>Logiciel cible</FieldLabel>
+                      <Select
+                        value={softwareReplacements[task.id]?.softwareId?.toString() || ''}
+                        onValueChange={(value) => {
+                          setSoftwareReplacements({
+                            ...softwareReplacements,
+                            [task.id]: {
+                              ...softwareReplacements[task.id],
+                              softwareId: parseInt(value)
+                            }
+                          });
+                        }}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Sélectionner un logiciel" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {softwares.map((software) => (
+                            <SelectItem key={software.id} value={software.id.toString()}>
+                              {software.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </Field>
+
+                    <Field>
+                      <FieldLabel>Version cible</FieldLabel>
+                      <Input
+                        placeholder="Ex: 2.4.1"
+                        value={softwareReplacements[task.id]?.targetVersion || ''}
+                        onChange={(e) => {
+                          setSoftwareReplacements({
+                            ...softwareReplacements,
+                            [task.id]: {
+                              ...softwareReplacements[task.id],
+                              targetVersion: e.target.value
+                            }
+                          });
+                        }}
+                      />
+                    </Field>
+                  </CardContent>
+                </Card>
+              ))}
+          </div>
+
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => {
+              setShowSoftwareDialog(false);
+              setSoftwareReplacements({});
+            }}>
+              Annuler
+            </AlertDialogCancel>
+            <Button
+              onClick={performAddTasks}
+              disabled={
+                isPending ||
+                Object.values(softwareReplacements).some(
+                  (replacement) => !replacement.softwareId || !replacement.targetVersion
+                )
+              }
+            >
+              Confirmer et ajouter
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

@@ -2,6 +2,7 @@
 
 import { useState, useOptimistic, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -16,7 +17,7 @@ import {
   ClockIcon,
   Copy01Icon
 } from '@hugeicons/core-free-icons';
-import { updateTaskStatus, completeUpdateSession } from '@/lib/actions/update-sessions';
+import { updateTaskStatus, completeUpdateSession, cancelStartUpdateSession, reopenUpdateSession } from '@/lib/actions/update-sessions';
 import { formatDistance } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
@@ -56,8 +57,37 @@ export function TrackSessionView({ session }: TrackSessionViewProps) {
 
   const handleCompleteSession = () => {
     startTransition(async () => {
-      await completeUpdateSession(session.id);
-      router.refresh();
+      try {
+        await completeUpdateSession(session.id);
+        toast.success('Session terminée avec succès');
+        router.refresh();
+      } catch (error) {
+        toast.error('Erreur lors de la finalisation de la session');
+      }
+    });
+  };
+
+  const handleCancelStart = () => {
+    startTransition(async () => {
+      try {
+        await cancelStartUpdateSession(session.id);
+        toast.info('Session remise en mode préparation');
+        // redirect is handled in the action
+      } catch (error) {
+        toast.error('Erreur lors de l\'annulation du démarrage');
+      }
+    });
+  };
+
+  const handleReopenSession = () => {
+    startTransition(async () => {
+      try {
+        await reopenUpdateSession(session.id);
+        toast.success('Session réouverte avec succès');
+        router.refresh();
+      } catch (error) {
+        toast.error('Erreur lors de la réouverture de la session');
+      }
     });
   };
 
@@ -65,9 +95,11 @@ export function TrackSessionView({ session }: TrackSessionViewProps) {
     try {
       await navigator.clipboard.writeText(teamviewerId);
       setCopiedId(teamviewerId);
+      toast.success('ID TeamViewer copié');
       setTimeout(() => setCopiedId(null), 2000);
     } catch (error) {
       console.error('Failed to copy:', error);
+      toast.error('Erreur lors de la copie');
     }
   };
 
@@ -124,12 +156,25 @@ export function TrackSessionView({ session }: TrackSessionViewProps) {
             )}
           </div>
 
-          {!isSessionCompleted && (
-            <Button onClick={handleCompleteSession} disabled={isPending || progress < 100}>
-              <HugeiconsIcon icon={CheckmarkCircleIcon} strokeWidth={2} data-icon="inline-start" />
-              Terminer la session
-            </Button>
-          )}
+          <div className="flex gap-2">
+            {isSessionCompleted ? (
+              <Button onClick={handleReopenSession} disabled={isPending} variant="outline">
+                <HugeiconsIcon icon={ClockIcon} strokeWidth={2} data-icon="inline-start" />
+                Réouvrir la session
+              </Button>
+            ) : (
+              <>
+                <Button onClick={handleCancelStart} disabled={isPending} variant="outline">
+                  <HugeiconsIcon icon={Cancel01Icon} strokeWidth={2} data-icon="inline-start" />
+                  Annuler le démarrage
+                </Button>
+                <Button onClick={handleCompleteSession} disabled={isPending || progress < 100}>
+                  <HugeiconsIcon icon={CheckmarkCircleIcon} strokeWidth={2} data-icon="inline-start" />
+                  Terminer la session
+                </Button>
+              </>
+            )}
+          </div>
         </div>
 
         {/* Statistics */}
@@ -224,6 +269,11 @@ export function TrackSessionView({ session }: TrackSessionViewProps) {
                           {task.task.description && (
                             <div className="text-xs text-muted-foreground mt-0.5">
                               {task.task.description}
+                            </div>
+                          )}
+                          {task.task.type === 'SOFTWARE_REPLACEMENT' && task.software && (
+                            <div className="text-xs mt-1 p-2 bg-blue-50 dark:bg-blue-950 rounded border border-blue-200 dark:border-blue-800">
+                              <span className="font-medium">Remplacement:</span> {task.software.name} → {task.targetVersion}
                             </div>
                           )}
                           {task.notes && (

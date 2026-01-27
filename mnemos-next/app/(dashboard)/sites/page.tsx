@@ -14,14 +14,26 @@ import { PlusSignIcon } from "@hugeicons/core-free-icons";
 export default async function SitesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ folderId?: string; tagId?: string }>;
+  searchParams: Promise<{ folderIds?: string | string[]; tagIds?: string | string[] }>;
 }) {
   const params = await searchParams;
-  const folderId = params.folderId ? parseInt(params.folderId) : undefined;
-  const tagId = params.tagId ? parseInt(params.tagId) : undefined;
+
+  // Handle multiple folder IDs
+  const folderIds = params.folderIds
+    ? (Array.isArray(params.folderIds)
+        ? params.folderIds.map(id => parseInt(id))
+        : [parseInt(params.folderIds)])
+    : [];
+
+  // Handle multiple tag IDs
+  const tagIds = params.tagIds
+    ? (Array.isArray(params.tagIds)
+        ? params.tagIds.map(id => parseInt(id))
+        : [parseInt(params.tagIds)])
+    : [];
 
   const [sites, folders, tags] = await Promise.all([
-    getSites(folderId, tagId),
+    getSites(folderIds, tagIds),
     getFolders(),
     getTags(),
   ]);
@@ -79,20 +91,20 @@ export default async function SitesPage({
       <SitesFilter
         folders={folders}
         tags={tags}
-        selectedFolderId={folderId}
-        selectedTagId={tagId}
+        selectedFolderIds={folderIds}
+        selectedTagIds={tagIds}
       />
 
       {sites.length === 0 ? (
         <EmptyState
           title="Aucun site"
           description={
-            folderId || tagId
+            folderIds.length > 0 || tagIds.length > 0
               ? "Aucun site ne correspond aux filtres sélectionnés."
               : "Commencez par créer votre premier site pour organiser vos machines."
           }
           action={
-            !folderId && !tagId ? (
+            folderIds.length === 0 && tagIds.length === 0 ? (
               <SiteFormDialog
                 trigger={
                   <Button>

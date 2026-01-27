@@ -7,6 +7,7 @@ import { z } from 'zod';
 const taskSchema = z.object({
   name: z.string().min(1, 'Le nom est requis').max(100),
   description: z.string().optional().nullable(),
+  type: z.enum(['DEFAULT', 'SOFTWARE_REPLACEMENT']).default('DEFAULT'),
   targetType: z.enum(['SERVER', 'CLIENT']),
   iconName: z.string().optional().nullable(),
 });
@@ -30,6 +31,7 @@ export async function createTask(formData: FormData) {
   const rawData = {
     name: formData.get('name') as string,
     description: formData.get('description') as string,
+    type: (formData.get('type') as 'DEFAULT' | 'SOFTWARE_REPLACEMENT') || 'DEFAULT',
     targetType: formData.get('targetType') as 'SERVER' | 'CLIENT',
     iconName: formData.get('iconName') as string,
   };
@@ -40,6 +42,7 @@ export async function createTask(formData: FormData) {
     data: {
       name: validated.name,
       description: validated.description,
+      type: validated.type,
       targetType: validated.targetType,
       iconName: validated.iconName,
     }
@@ -52,6 +55,7 @@ export async function updateTask(id: number, formData: FormData) {
   const rawData = {
     name: formData.get('name') as string,
     description: formData.get('description') as string,
+    type: (formData.get('type') as 'DEFAULT' | 'SOFTWARE_REPLACEMENT') || 'DEFAULT',
     targetType: formData.get('targetType') as 'SERVER' | 'CLIENT',
     iconName: formData.get('iconName') as string,
   };
@@ -63,6 +67,7 @@ export async function updateTask(id: number, formData: FormData) {
     data: {
       name: validated.name,
       description: validated.description,
+      type: validated.type,
       targetType: validated.targetType,
       iconName: validated.iconName,
     }

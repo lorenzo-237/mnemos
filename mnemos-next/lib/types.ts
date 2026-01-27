@@ -7,6 +7,13 @@ export const MachineType = {
 
 export type MachineType = (typeof MachineType)[keyof typeof MachineType];
 
+export const TaskType = {
+  DEFAULT: "DEFAULT",
+  SOFTWARE_REPLACEMENT: "SOFTWARE_REPLACEMENT",
+} as const;
+
+export type TaskType = (typeof TaskType)[keyof typeof TaskType];
+
 // Types pour les composants client
 export interface MachineFormData {
   id: number;

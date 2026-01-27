@@ -1,7 +1,8 @@
-'use client';
+"use client";
 
-import { useState, useTransition, ReactNode, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useTransition, ReactNode, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -10,27 +11,27 @@ import {
   AlertDialogTrigger,
   AlertDialogFooter,
   AlertDialogCancel,
-} from '@/components/ui/alert-dialog';
-import { Field, FieldLabel, FieldGroup } from '@/components/ui/field';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
+} from "@/components/ui/alert-dialog";
+import { Field, FieldLabel, FieldGroup } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { IconSelector } from '@/components/shared/icon-selector';
-import { MetadataEditor } from '@/components/shared/metadata-editor';
-import { TagSelector } from '@/components/tags/tag-selector';
-import { createSite, updateSite } from '@/lib/actions/sites';
-import { getFolders } from '@/lib/actions/folders';
-import { addTagToSite, removeTagFromSite } from '@/lib/actions/tags';
-import type { SiteFormData } from '@/lib/types';
+} from "@/components/ui/select";
+import { IconSelector } from "@/components/shared/icon-selector";
+import { MetadataEditor } from "@/components/shared/metadata-editor";
+import { TagSelector } from "@/components/tags/tag-selector";
+import { createSite, updateSite } from "@/lib/actions/sites";
+import { getFolders } from "@/lib/actions/folders";
+import { addTagToSite, removeTagFromSite } from "@/lib/actions/tags";
+import type { SiteFormData } from "@/lib/types";
 
 interface SiteFormDialogProps {
   site?: SiteFormData;
@@ -43,20 +44,25 @@ export function SiteFormDialog({ site, trigger }: SiteFormDialogProps) {
   const router = useRouter();
 
   // Form state
-  const [iconName, setIconName] = useState<string | null>(site?.iconName || null);
-  const [metadata, setMetadata] = useState<Record<string, { value: string; iconName?: string }> | null>(
-    site?.metadata || null
+  const [iconName, setIconName] = useState<string | null>(
+    site?.iconName || null,
   );
+  const [metadata, setMetadata] = useState<Record<
+    string,
+    { value: string; iconName?: string }
+  > | null>(site?.metadata || null);
   const [selectedTags, setSelectedTags] = useState<number[]>(
-    site?.tags?.map(t => t.tag.id) || []
+    site?.tags?.map((t) => t.tag.id) || [],
   );
   const [isObsolete, setIsObsolete] = useState(site?.isObsolete || false);
   const [selectedFolderId, setSelectedFolderId] = useState<string>(
-    site?.folderId?.toString() || 'none'
+    site?.folderId?.toString() || "none",
   );
 
   // Folders list
-  const [folders, setFolders] = useState<Array<{ id: number; name: string }>>([]);
+  const [folders, setFolders] = useState<Array<{ id: number; name: string }>>(
+    [],
+  );
   const [loadingFolders, setLoadingFolders] = useState(true);
 
   useEffect(() => {
@@ -71,14 +77,14 @@ export function SiteFormDialog({ site, trigger }: SiteFormDialogProps) {
   const handleSubmit = async (formData: FormData) => {
     // Add computed fields to formData
     if (iconName) {
-      formData.set('iconName', iconName);
+      formData.set("iconName", iconName);
     }
     if (metadata) {
-      formData.set('metadata', JSON.stringify(metadata));
+      formData.set("metadata", JSON.stringify(metadata));
     }
-    formData.set('isObsolete', isObsolete.toString());
-    if (selectedFolderId && selectedFolderId !== 'none') {
-      formData.set('folderId', selectedFolderId);
+    formData.set("isObsolete", isObsolete.toString());
+    if (selectedFolderId && selectedFolderId !== "none") {
+      formData.set("folderId", selectedFolderId);
     }
 
     startTransition(async () => {
@@ -87,9 +93,13 @@ export function SiteFormDialog({ site, trigger }: SiteFormDialogProps) {
           await updateSite(site.id, formData);
 
           // Handle tag updates
-          const currentTagIds = site.tags?.map(t => t.tag.id) || [];
-          const tagsToAdd = selectedTags.filter(id => !currentTagIds.includes(id));
-          const tagsToRemove = currentTagIds.filter(id => !selectedTags.includes(id));
+          const currentTagIds = site.tags?.map((t) => t.tag.id) || [];
+          const tagsToAdd = selectedTags.filter(
+            (id) => !currentTagIds.includes(id),
+          );
+          const tagsToRemove = currentTagIds.filter(
+            (id) => !selectedTags.includes(id),
+          );
 
           for (const tagId of tagsToAdd) {
             await addTagToSite(site.id, tagId);
@@ -98,30 +108,35 @@ export function SiteFormDialog({ site, trigger }: SiteFormDialogProps) {
             await removeTagFromSite(site.id, tagId);
           }
 
+          toast.success("Site modifié avec succès");
           setOpen(false);
           router.refresh();
         } else {
           await createSite(formData);
+          toast.success("Site créé avec succès");
           // La redirection est gérée par l'action
           // Tags will be handled after site creation if needed
         }
       } catch (error) {
-        console.error('Form error:', error);
+        console.error("Form error:", error);
+        toast.error(
+          site
+            ? "Erreur lors de la modification du site"
+            : "Erreur lors de la création du site",
+        );
       }
     });
   };
 
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
-      <AlertDialogTrigger asChild>
-        {trigger}
-      </AlertDialogTrigger>
+      <AlertDialogTrigger asChild>{trigger}</AlertDialogTrigger>
 
-      <AlertDialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <AlertDialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
         <form action={handleSubmit}>
           <AlertDialogHeader>
             <AlertDialogTitle>
-              {site ? 'Modifier le site' : 'Nouveau site'}
+              {site ? "Modifier le site" : "Nouveau site"}
             </AlertDialogTitle>
           </AlertDialogHeader>
 
@@ -142,7 +157,7 @@ export function SiteFormDialog({ site, trigger }: SiteFormDialogProps) {
               <Textarea
                 id="description"
                 name="description"
-                defaultValue={site?.description || ''}
+                defaultValue={site?.description || ""}
                 placeholder="Description du site..."
                 rows={3}
               />
@@ -151,7 +166,9 @@ export function SiteFormDialog({ site, trigger }: SiteFormDialogProps) {
             <Field>
               <FieldLabel htmlFor="folderId">Dossier</FieldLabel>
               {loadingFolders ? (
-                <div className="text-sm text-muted-foreground">Chargement...</div>
+                <div className="text-sm text-muted-foreground">
+                  Chargement...
+                </div>
               ) : (
                 <Select
                   value={selectedFolderId}
@@ -199,11 +216,13 @@ export function SiteFormDialog({ site, trigger }: SiteFormDialogProps) {
 
             {isObsolete && (
               <Field>
-                <FieldLabel htmlFor="obsoleteReason">Raison de l'obsolescence</FieldLabel>
+                <FieldLabel htmlFor="obsoleteReason">
+                  Raison de l'obsolescence
+                </FieldLabel>
                 <Textarea
                   id="obsoleteReason"
                   name="obsoleteReason"
-                  defaultValue={site?.obsoleteReason || ''}
+                  defaultValue={site?.obsoleteReason || ""}
                   placeholder="Expliquez pourquoi ce site est obsolète..."
                   rows={2}
                 />
@@ -220,7 +239,7 @@ export function SiteFormDialog({ site, trigger }: SiteFormDialogProps) {
           <AlertDialogFooter>
             <AlertDialogCancel>Annuler</AlertDialogCancel>
             <Button type="submit" disabled={isPending}>
-              {isPending ? 'Enregistrement...' : 'Enregistrer'}
+              {isPending ? "Enregistrement..." : "Enregistrer"}
             </Button>
           </AlertDialogFooter>
         </form>

@@ -77,11 +77,18 @@ export default async function TasksPage() {
                   <Card key={task.id}>
                     <CardHeader>
                       <div className="flex items-start justify-between">
-                        <div className="flex items-center gap-2 flex-1">
-                          {task.iconName && (
-                            <DynamicIcon iconName={task.iconName} className="w-5 h-5" />
+                        <div className="flex flex-col gap-2 flex-1">
+                          <div className="flex items-center gap-2">
+                            {task.iconName && (
+                              <DynamicIcon iconName={task.iconName} className="w-5 h-5" />
+                            )}
+                            <CardTitle className="text-base">{task.name}</CardTitle>
+                          </div>
+                          {task.type === 'SOFTWARE_REPLACEMENT' && (
+                            <Badge variant="outline" className="w-fit text-xs">
+                              Remplacement logiciel
+                            </Badge>
                           )}
-                          <CardTitle className="text-base">{task.name}</CardTitle>
                         </div>
                         <div className="flex gap-1">
                           <TaskFormDialog
@@ -135,11 +142,18 @@ export default async function TasksPage() {
                   <Card key={task.id}>
                     <CardHeader>
                       <div className="flex items-start justify-between">
-                        <div className="flex items-center gap-2 flex-1">
-                          {task.iconName && (
-                            <DynamicIcon iconName={task.iconName} className="w-5 h-5" />
+                        <div className="flex flex-col gap-2 flex-1">
+                          <div className="flex items-center gap-2">
+                            {task.iconName && (
+                              <DynamicIcon iconName={task.iconName} className="w-5 h-5" />
+                            )}
+                            <CardTitle className="text-base">{task.name}</CardTitle>
+                          </div>
+                          {task.type === 'SOFTWARE_REPLACEMENT' && (
+                            <Badge variant="outline" className="w-fit text-xs">
+                              Remplacement logiciel
+                            </Badge>
                           )}
-                          <CardTitle className="text-base">{task.name}</CardTitle>
                         </div>
                         <div className="flex gap-1">
                           <TaskFormDialog

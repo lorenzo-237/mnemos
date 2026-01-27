@@ -43,21 +43,27 @@ une tache peut avoir un type:
 
 ### Avancement
 
-[] sytème de toast simple efficace avec shadcn: pour afficher un petit toast sur les opérations qui en ont besoin
-[] La recherche de site par les filtres Dossiers et Tags, je dois pouvoir combiner plusieurs dossiers, et/ou plusieurs tag
-[] Mode sombre
-[] EVO - Tache
-[] dans une session update, je peux démarrer une session mais j'aimerais pouvoir annuler le fait qu'elle soit démarrer
-[] dans une session update, je peux terminer une session mais j'aimerais pouvoir la réouvrir si je me suis trompé pour modifier les taches
-[] la vue /updates je préfères avoir un tableau propre plutôt que des Cards
+[x] sytème de toast simple efficace avec shadcn: pour afficher un petit toast sur les opérations qui en ont besoin
+[x] La recherche de site par les filtres Dossiers et Tags, je dois pouvoir combiner plusieurs dossiers, et/ou plusieurs tag
+[x] Mode sombre
+[x] EVO - Tache - Implémentation complète: - Sélection du logiciel et version lors de la préparation de la session - Affichage du remplacement cible dans la vue de suivi - Mise à jour automatique du logiciel de la machine lors de la validation
+[x] dans une session update, je peux démarrer une session mais j'aimerais pouvoir annuler le fait qu'elle soit démarrer
+[x] dans une session update, je peux terminer une session mais j'aimerais pouvoir la réouvrir si je me suis trompé pour modifier les taches
+[x] la vue /updates je préfères avoir un tableau propre plutôt que des Cards
 
 ## Phase 3
 
 ### Avancement
 
-[] améliorer la modal d'ajout de logiciel pour proposer 2 onglets : 1 - Créer logiciel 2 - Logiciel existant
 [] attention si j'ajoue un logiciel: si un meme logiciel existe peut importe comment il est écrit tout en majuscule, minuscule, 1 lettre maj etc, il ne faut pas l'ajouter mais le réutiliser tout simplement
-[] depuis les logiciels, je peux accéder à un tableau pour vérifier quel site, quel machine dispose du logiciel en question et voir sa version
+[] améliorer la modal d'ajout de logiciel pour proposer 2 onglets : 1 - Créer logiciel 2 - Logiciel existant
+[] les logiciels ont aussi des métadonnées mais actuellement depuis la création de logiciel je ne peux pas en ajouter, pareil pour l'icone
+[] depuis la liste des logiciels je ne peux pas modifier, l'icone, les métadonnées
+[] depuis la liste des logiciels, je peux accéder à un tableau pour vérifier quel site, quel machine dispose du logiciel en question et voir sa version
+[] dans la session de mise à jour, les taches doivent être regrouper par machine, je dois pouvoir sélectionner une machine sources et ses taches et les cloner vers une ou plusieurs machine destination
+[] dans la session de mise à jour je dois pouvoir changer l'ordre des machines, et des taches dans les machines pour organiser proprement: surement modifier le schema en base
+[] dans la session de mise à jour je dois pouvoir retirer / modifier une tache
+[] quand je démarre une session et que je modifie l'etat d'une tache pas besoin d'altérer l'ordre, l'ordre est toujours le même celui defini en amont
 
 ## Phase 4
 

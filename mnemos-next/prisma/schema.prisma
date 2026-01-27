@@ -22,6 +22,11 @@ enum TaskStatus {
   SKIPPED
 }
 
+enum TaskType {
+  DEFAULT
+  SOFTWARE_REPLACEMENT
+}
+
 model Folder {
   id             Int             @id @default(autoincrement())
   name           String          @unique
@@ -96,6 +101,7 @@ model Software {
   metadata      Json?
   createdAt     DateTime        @default(now())
   installations Installation[]
+  updateTasks   UpdateTask[]
 
   @@map("softwares")
 }
@@ -119,6 +125,7 @@ model Task {
   id          Int           @id @default(autoincrement())
   name        String
   description String?
+  type        TaskType      @default(DEFAULT)
   targetType  MachineType   // SERVER ou CLIENT
   iconName    String?
   createdAt   DateTime      @default(now())
@@ -146,16 +153,20 @@ model UpdateSession {
 }
 
 model UpdateTask {
-  id              Int            @id @default(autoincrement())
-  updateSessionId Int
-  machineId       Int
-  taskId          Int
-  status          TaskStatus     @default(PENDING)
-  notes           String?
-  completedAt     DateTime?
-  updateSession   UpdateSession  @relation(fields: [updateSessionId], references: [id], onDelete: Cascade)
-  machine         Machine        @relation(fields: [machineId], references: [id], onDelete: Cascade)
-  task            Task           @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  id                    Int            @id @default(autoincrement())
+  updateSessionId       Int
+  machineId             Int
+  taskId                Int
+  status                TaskStatus     @default(PENDING)
+  notes                 String?
+  completedAt           DateTime?
+  // Champs pour les tâches de remplacement de logiciel
+  softwareId            Int?           // Logiciel cible pour les tâches de type SOFTWARE_REPLACEMENT
+  targetVersion         String?        // Version cible du logiciel
+  updateSession         UpdateSession  @relation(fields: [updateSessionId], references: [id], onDelete: Cascade)
+  machine               Machine        @relation(fields: [machineId], references: [id], onDelete: Cascade)
+  task                  Task           @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  software              Software?      @relation(fields: [softwareId], references: [id], onDelete: SetNull)
 
   @@unique([updateSessionId, machineId, taskId])
   @@index([updateSessionId])

@@ -54,7 +54,7 @@ export function SiteMachinesDialog({ siteId, siteName, trigger }: SiteMachinesDi
         {trigger}
       </AlertDialogTrigger>
 
-      <AlertDialogContent className="max-w-4xl max-h-[80vh] overflow-hidden flex flex-col">
+      <AlertDialogContent className="max-w-5xl max-h-[80vh] overflow-hidden flex flex-col">
         <AlertDialogHeader>
           <AlertDialogTitle className="text-2xl">
             Machines de {siteName}

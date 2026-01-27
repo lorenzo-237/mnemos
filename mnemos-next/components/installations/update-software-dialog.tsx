@@ -2,6 +2,7 @@
 
 import { useState, useTransition, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import {
   AlertDialog,
   AlertDialogContent,
@@ -41,10 +42,12 @@ export function UpdateSoftwareDialog({
     startTransition(async () => {
       try {
         await updateSoftwareVersion(machineId, formData);
+        toast.success('Version du logiciel mise à jour');
         setOpen(false);
         router.refresh();
       } catch (error) {
         console.error('Form error:', error);
+        toast.error('Erreur lors de la mise à jour du logiciel');
       }
     });
   };
@@ -55,7 +58,7 @@ export function UpdateSoftwareDialog({
         {trigger}
       </AlertDialogTrigger>
 
-      <AlertDialogContent>
+      <AlertDialogContent className="max-w-2xl">
         <form action={handleSubmit}>
           <AlertDialogHeader>
             <AlertDialogTitle>Mettre à jour {softwareName}</AlertDialogTitle>

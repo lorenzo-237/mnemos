@@ -2,6 +2,7 @@
 
 import { useState, useTransition, ReactNode } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -50,14 +51,17 @@ export function MachineFormDialog({
       try {
         if (machine) {
           await updateMachine(machine.id, formData);
+          toast.success('Machine modifiée avec succès');
           setOpen(false);
           router.refresh();
         } else {
-          setOpen(false);
           await createMachine(siteId, formData);
+          toast.success('Machine créée avec succès');
+          setOpen(false);
         }
       } catch (error) {
         console.error("Form error:", error);
+        toast.error(machine ? 'Erreur lors de la modification de la machine' : 'Erreur lors de la création de la machine');
       }
     });
   };
@@ -66,7 +70,7 @@ export function MachineFormDialog({
     <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger asChild>{trigger}</AlertDialogTrigger>
 
-      <AlertDialogContent>
+      <AlertDialogContent className="max-w-3xl">
         <form action={handleSubmit}>
           <AlertDialogHeader>
             <AlertDialogTitle>

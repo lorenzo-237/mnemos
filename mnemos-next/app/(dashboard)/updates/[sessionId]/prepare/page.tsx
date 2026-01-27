@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { getUpdateSessionById } from "@/lib/actions/update-sessions";
 import { getTasks } from "@/lib/actions/tasks";
+import { getSoftwares } from "@/lib/actions/softwares";
 import { PrepareSessionView } from "@/components/updates/prepare-session-view";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ArrowLeft01Icon } from "@hugeicons/core-free-icons";
@@ -14,9 +15,10 @@ export default async function PrepareSessionPage({
   const { sessionId: sessionIdParam } = await params;
   const sessionId = parseInt(sessionIdParam);
 
-  const [session, tasks] = await Promise.all([
+  const [session, tasks, softwares] = await Promise.all([
     getUpdateSessionById(sessionId),
     getTasks(),
+    getSoftwares(),
   ]);
 
   if (!session) {
@@ -73,6 +75,7 @@ export default async function PrepareSessionPage({
         session={session}
         availableMachines={availableMachines}
         tasks={tasks}
+        softwares={softwares}
       />
     </div>
   );

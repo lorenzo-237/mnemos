@@ -12,19 +12,37 @@ function normalizeJson<T>(value: unknown): T | null {
   return JSON.parse(JSON.stringify(value));
 }
 
-export async function getSites(folderId?: number, tagId?: number) {
+export async function getSites(folderIds?: number[], tagIds?: number[]) {
   const where: any = {};
 
-  if (folderId !== undefined) {
-    where.folderId = folderId;
+  // Build AND conditions array
+  const andConditions: any[] = [];
+
+  // Filter by folders (OR condition)
+  if (folderIds && folderIds.length > 0) {
+    andConditions.push({
+      folderId: {
+        in: folderIds,
+      },
+    });
   }
 
-  if (tagId !== undefined) {
-    where.tags = {
-      some: {
-        tagId,
+  // Filter by tags (OR condition - site must have at least one of the selected tags)
+  if (tagIds && tagIds.length > 0) {
+    andConditions.push({
+      tags: {
+        some: {
+          tagId: {
+            in: tagIds,
+          },
+        },
       },
-    };
+    });
+  }
+
+  // Apply AND conditions if any
+  if (andConditions.length > 0) {
+    where.AND = andConditions;
   }
 
   return prisma.site.findMany({

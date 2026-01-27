@@ -10,14 +10,26 @@ import Link from "next/link";
 export default async function RemoteAccessPage({
   searchParams,
 }: {
-  searchParams: Promise<{ folderId?: string; tagId?: string }>;
+  searchParams: Promise<{ folderIds?: string | string[]; tagIds?: string | string[] }>;
 }) {
   const params = await searchParams;
-  const folderId = params.folderId ? parseInt(params.folderId) : undefined;
-  const tagId = params.tagId ? parseInt(params.tagId) : undefined;
+
+  // Handle multiple folder IDs
+  const folderIds = params.folderIds
+    ? (Array.isArray(params.folderIds)
+        ? params.folderIds.map(id => parseInt(id))
+        : [parseInt(params.folderIds)])
+    : [];
+
+  // Handle multiple tag IDs
+  const tagIds = params.tagIds
+    ? (Array.isArray(params.tagIds)
+        ? params.tagIds.map(id => parseInt(id))
+        : [parseInt(params.tagIds)])
+    : [];
 
   const [sites, folders, tags] = await Promise.all([
-    getSites(folderId, tagId),
+    getSites(folderIds, tagIds),
     getFolders(),
     getTags(),
   ]);
@@ -58,8 +70,8 @@ export default async function RemoteAccessPage({
       <RemoteAccessFilter
         folders={folders}
         tags={tags}
-        selectedFolderId={folderId}
-        selectedTagId={tagId}
+        selectedFolderIds={folderIds}
+        selectedTagIds={tagIds}
       />
 
       <div className="mb-4 flex items-center justify-between">

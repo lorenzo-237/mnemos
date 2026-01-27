@@ -12,6 +12,7 @@ import {
   RefreshIcon,
   RemoteControlIcon
 } from '@hugeicons/core-free-icons';
+import { ThemeToggle } from '@/components/theme-toggle';
 
 const navigation = [
   { name: 'Sites', href: '/sites', icon: BuildingIcon },
@@ -53,6 +54,10 @@ export function AppSidebar() {
           );
         })}
       </nav>
+
+      <div className="p-3 border-t">
+        <ThemeToggle />
+      </div>
 
       <div className="p-4 border-t text-xs text-muted-foreground">
         v0.1.0 MVP

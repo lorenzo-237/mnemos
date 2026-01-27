@@ -73,7 +73,7 @@ export function MachineQuickView({ machine, trigger }: MachineQuickViewProps) {
     <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger>{trigger}</AlertDialogTrigger>
 
-      <AlertDialogContent className="max-w-2xl">
+      <AlertDialogContent className="max-w-3xl">
         <AlertDialogHeader>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">

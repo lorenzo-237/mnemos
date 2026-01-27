@@ -2,8 +2,8 @@ import { getUpdateSessions } from "@/lib/actions/update-sessions";
 import { DeleteConfirmation } from "@/components/shared/delete-confirmation";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   PlusSignIcon,
@@ -11,7 +11,8 @@ import {
   FolderIcon,
   TagIcon,
   PlayIcon,
-  CheckmarkCircleIcon
+  CheckmarkCircleIcon,
+  ViewIcon
 } from "@hugeicons/core-free-icons";
 import { deleteUpdateSession } from "@/lib/actions/update-sessions";
 import Link from "next/link";
@@ -73,90 +74,101 @@ export default async function UpdatesPage() {
           }
         />
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {sessions.map((session) => {
-            const isCompleted = !!session.completedAt;
-            const isStarted = !!session.startedAt;
+        <div className="border rounded-lg">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Nom</TableHead>
+                <TableHead>Statut</TableHead>
+                <TableHead>Scope</TableHead>
+                <TableHead className="text-center">Tâches</TableHead>
+                <TableHead>Créée</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {sessions.map((session) => {
+                const isCompleted = !!session.completedAt;
+                const isStarted = !!session.startedAt;
 
-            return (
-              <Card key={session.id} className="hover:shadow-md transition-shadow">
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <CardTitle className="text-lg">{session.name}</CardTitle>
-                        {isCompleted ? (
-                          <Badge variant="default">
-                            <HugeiconsIcon icon={CheckmarkCircleIcon} strokeWidth={2} className="w-3 h-3 mr-1" />
-                            Terminée
-                          </Badge>
-                        ) : isStarted ? (
-                          <Badge variant="secondary">En cours</Badge>
-                        ) : (
-                          <Badge variant="outline">À préparer</Badge>
+                return (
+                  <TableRow key={session.id} className="hover:bg-muted/50">
+                    <TableCell>
+                      <div>
+                        <div className="font-medium">{session.name}</div>
+                        {session.description && (
+                          <div className="text-xs text-muted-foreground line-clamp-1 mt-1">
+                            {session.description}
+                          </div>
                         )}
                       </div>
-
-                      {session.description && (
-                        <CardDescription className="line-clamp-2 mb-2">
-                          {session.description}
-                        </CardDescription>
+                    </TableCell>
+                    <TableCell>
+                      {isCompleted ? (
+                        <Badge variant="default">
+                          <HugeiconsIcon icon={CheckmarkCircleIcon} strokeWidth={2} className="w-3 h-3 mr-1" />
+                          Terminée
+                        </Badge>
+                      ) : isStarted ? (
+                        <Badge variant="secondary">En cours</Badge>
+                      ) : (
+                        <Badge variant="outline">À préparer</Badge>
                       )}
-
-                      <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-wrap gap-2">
                         {session.folder && (
-                          <div className="flex items-center gap-1">
+                          <div className="flex items-center gap-1 text-xs">
                             <HugeiconsIcon icon={FolderIcon} strokeWidth={2} className="w-3 h-3" />
                             <span>{session.folder.name}</span>
                           </div>
                         )}
                         {session.tag && (
-                          <div className="flex items-center gap-1">
+                          <div className="flex items-center gap-1 text-xs">
                             <HugeiconsIcon icon={TagIcon} strokeWidth={2} className="w-3 h-3" />
                             <span>{session.tag.name}</span>
                           </div>
                         )}
-                        <span>•</span>
-                        <span>{session._count.updateTasks} tâche{session._count.updateTasks > 1 ? 's' : ''}</span>
+                        {!session.folder && !session.tag && (
+                          <span className="text-xs text-muted-foreground">-</span>
+                        )}
                       </div>
-
-                      <div className="text-xs text-muted-foreground mt-2">
-                        Créée {formatDistance(new Date(session.createdAt), new Date(), { addSuffix: true, locale: fr })}
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <span className="font-medium">{session._count.updateTasks}</span>
+                    </TableCell>
+                    <TableCell>
+                      <span className="text-xs text-muted-foreground">
+                        {formatDistance(new Date(session.createdAt), new Date(), { addSuffix: true, locale: fr })}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center justify-end gap-1">
+                        <Link href={isStarted ? `/updates/${session.id}/track` : `/updates/${session.id}/prepare`}>
+                          <Button variant="ghost" size="sm" title={isCompleted ? 'Voir le résumé' : isStarted ? 'Continuer le suivi' : 'Préparer la session'}>
+                            <HugeiconsIcon icon={ViewIcon} strokeWidth={2} />
+                          </Button>
+                        </Link>
+                        <DeleteConfirmation
+                          title="Supprimer cette session ?"
+                          description="Cette action supprimera toutes les tâches associées. Cette action est irréversible."
+                          onConfirm={async () => {
+                            'use server';
+                            await deleteUpdateSession(session.id);
+                          }}
+                          trigger={
+                            <Button variant="ghost" size="sm">
+                              <HugeiconsIcon icon={Delete02Icon} strokeWidth={2} />
+                            </Button>
+                          }
+                        />
                       </div>
-                    </div>
-
-                    <DeleteConfirmation
-                      title="Supprimer cette session ?"
-                      description="Cette action supprimera toutes les tâches associées. Cette action est irréversible."
-                      onConfirm={async () => {
-                        'use server';
-                        await deleteUpdateSession(session.id);
-                      }}
-                      trigger={
-                        <Button variant="ghost" size="sm">
-                          <HugeiconsIcon icon={Delete02Icon} strokeWidth={2} />
-                        </Button>
-                      }
-                    />
-                  </div>
-                </CardHeader>
-
-                <CardContent className="pt-0">
-                  <Link href={isStarted ? `/updates/${session.id}/track` : `/updates/${session.id}/prepare`}>
-                    <Button variant="outline" size="sm" className="w-full">
-                      {isCompleted ? (
-                        <>Voir le résumé</>
-                      ) : isStarted ? (
-                        <>Continuer le suivi</>
-                      ) : (
-                        <>Préparer la session</>
-                      )}
-                    </Button>
-                  </Link>
-                </CardContent>
-              </Card>
-            );
-          })}
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
         </div>
       )}
     </div>

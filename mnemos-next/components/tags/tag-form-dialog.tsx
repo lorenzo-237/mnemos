@@ -51,7 +51,7 @@ export function TagFormDialog({ tag, trigger }: TagFormDialogProps) {
         {trigger}
       </AlertDialogTrigger>
 
-      <AlertDialogContent>
+      <AlertDialogContent className="max-w-2xl">
         <form action={handleSubmit}>
           <AlertDialogHeader>
             <AlertDialogTitle>

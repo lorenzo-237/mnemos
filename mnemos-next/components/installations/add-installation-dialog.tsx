@@ -2,6 +2,7 @@
 
 import { useState, useTransition, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import {
   AlertDialog,
   AlertDialogContent,
@@ -41,10 +42,12 @@ export function AddInstallationDialog({ machineId, trigger }: AddInstallationDia
     startTransition(async () => {
       try {
         await addInstallation(machineId, formData);
+        toast.success('Logiciel ajouté avec succès');
         setOpen(false);
         router.refresh();
       } catch (error) {
         console.error('Form error:', error);
+        toast.error('Erreur lors de l\'ajout du logiciel');
       }
     });
   };
@@ -55,7 +58,7 @@ export function AddInstallationDialog({ machineId, trigger }: AddInstallationDia
         {trigger}
       </AlertDialogTrigger>
 
-      <AlertDialogContent>
+      <AlertDialogContent className="max-w-3xl">
         <form action={handleSubmit}>
           <AlertDialogHeader>
             <AlertDialogTitle>Ajouter un logiciel</AlertDialogTitle>

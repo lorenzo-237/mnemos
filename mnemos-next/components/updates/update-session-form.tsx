@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useTransition } from 'react';
+import { toast } from 'sonner';
 import { Field, FieldLabel, FieldGroup } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -36,14 +37,16 @@ export function UpdateSessionForm({ folders, tags }: UpdateSessionFormProps) {
     startTransition(async () => {
       try {
         await createUpdateSession(formData);
+        toast.success('Session créée avec succès');
       } catch (error) {
         console.error('Form error:', error);
+        toast.error('Erreur lors de la création de la session');
       }
     });
   };
 
   return (
-    <Card className="max-w-2xl">
+    <Card className="max-w-4xl">
       <CardHeader>
         <CardTitle>Informations de la session</CardTitle>
       </CardHeader>
