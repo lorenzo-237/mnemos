@@ -1,0 +1,165 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum MachineType {
+  SERVER
+  CLIENT
+}
+
+enum TaskStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  SKIPPED
+}
+
+model Folder {
+  id             Int             @id @default(autoincrement())
+  name           String          @unique
+  createdAt      DateTime        @default(now())
+  sites          Site[]
+  updateSessions UpdateSession[]
+
+  @@map("folders")
+}
+
+model Tag {
+  id             Int             @id @default(autoincrement())
+  name           String          @unique
+  createdAt      DateTime        @default(now())
+  sites          SiteTag[]
+  updateSessions UpdateSession[]
+
+  @@map("tags")
+}
+
+model SiteTag {
+  siteId Int
+  tagId  Int
+  site   Site @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  tag    Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([siteId, tagId])
+  @@map("site_tags")
+}
+
+model Site {
+  id              Int       @id @default(autoincrement())
+  name            String    @unique
+  description     String?
+  iconName        String?
+  metadata        Json?
+  isObsolete      Boolean   @default(false)
+  obsoleteReason  String?
+  folderId        Int?
+  folder          Folder?   @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  createdAt       DateTime  @default(now())
+  machines        Machine[]
+  tags            SiteTag[]
+
+  @@index([folderId])
+  @@index([isObsolete])
+  @@map("sites")
+}
+
+model Machine {
+  id              Int             @id @default(autoincrement())
+  name            String
+  type            MachineType
+  siteId          Int
+  site            Site            @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  teamviewerId    String?
+  teamviewerPwd   String?         // Stocké chiffré avec AES-256-GCM
+  createdAt       DateTime        @default(now())
+  installations   Installation[]
+  updateTasks     UpdateTask[]
+
+  @@unique([name, siteId])
+  @@index([siteId])
+  @@map("machines")
+}
+
+model Software {
+  id            Int             @id @default(autoincrement())
+  name          String          @unique
+  description   String?
+  iconName      String?
+  metadata      Json?
+  createdAt     DateTime        @default(now())
+  installations Installation[]
+
+  @@map("softwares")
+}
+
+model Installation {
+  id           Int       @id @default(autoincrement())
+  machineId    Int
+  softwareId   Int
+  version      String
+  installedAt  DateTime  @default(now())
+  removedAt    DateTime?
+  machine      Machine   @relation(fields: [machineId], references: [id], onDelete: Cascade)
+  software     Software  @relation(fields: [softwareId], references: [id], onDelete: Cascade)
+
+  @@index([machineId, softwareId])
+  @@index([removedAt])  // Pour filtrer les installations actives
+  @@map("installations")
+}
+
+model Task {
+  id          Int           @id @default(autoincrement())
+  name        String
+  description String?
+  targetType  MachineType   // SERVER ou CLIENT
+  iconName    String?
+  createdAt   DateTime      @default(now())
+  updateTasks UpdateTask[]
+
+  @@map("tasks")
+}
+
+model UpdateSession {
+  id          Int           @id @default(autoincrement())
+  name        String
+  description String?
+  folderId    Int?
+  folder      Folder?       @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  tagId       Int?
+  tag         Tag?          @relation(fields: [tagId], references: [id], onDelete: SetNull)
+  createdAt   DateTime      @default(now())
+  startedAt   DateTime?
+  completedAt DateTime?
+  updateTasks UpdateTask[]
+
+  @@index([folderId])
+  @@index([tagId])
+  @@map("update_sessions")
+}
+
+model UpdateTask {
+  id              Int            @id @default(autoincrement())
+  updateSessionId Int
+  machineId       Int
+  taskId          Int
+  status          TaskStatus     @default(PENDING)
+  notes           String?
+  completedAt     DateTime?
+  updateSession   UpdateSession  @relation(fields: [updateSessionId], references: [id], onDelete: Cascade)
+  machine         Machine        @relation(fields: [machineId], references: [id], onDelete: Cascade)
+  task            Task           @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@unique([updateSessionId, machineId, taskId])
+  @@index([updateSessionId])
+  @@index([machineId])
+  @@index([status])
+  @@map("update_tasks")
+}
