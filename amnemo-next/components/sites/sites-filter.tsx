@@ -1,16 +1,19 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { HugeiconsIcon } from '@hugeicons/react';
-import { FolderIcon, Cancel01Icon, FilterIcon } from '@hugeicons/core-free-icons';
+import { FolderIcon, Cancel01Icon, FilterIcon, Search01Icon } from '@hugeicons/core-free-icons';
 
 interface SitesFilterProps {
   folders: Array<{ id: number; name: string }>;
   tags: Array<{ id: number; name: string }>;
   selectedFolderIds: number[];
   selectedTagIds: number[];
+  searchName: string;
 }
 
 export function SitesFilter({
@@ -18,9 +21,24 @@ export function SitesFilter({
   tags,
   selectedFolderIds,
   selectedTagIds,
+  searchName,
 }: SitesFilterProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [nameInput, setNameInput] = useState(searchName);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const params = new URLSearchParams(searchParams.toString());
+      if (nameInput) {
+        params.set('name', nameInput);
+      } else {
+        params.delete('name');
+      }
+      router.push(`/sites?${params.toString()}`);
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [nameInput]);
 
   const handleFolderClick = (folderId: number) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -61,17 +79,29 @@ export function SitesFilter({
   };
 
   const clearFilters = () => {
+    setNameInput('');
     router.push('/sites');
   };
 
-  const hasActiveFilters = selectedFolderIds.length > 0 || selectedTagIds.length > 0;
-
-  if (folders.length === 0 && tags.length === 0) {
-    return null;
-  }
+  const hasActiveFilters = selectedFolderIds.length > 0 || selectedTagIds.length > 0 || nameInput.length > 0;
 
   return (
     <div className="mb-6 space-y-3">
+      {/* Recherche par nom */}
+      <div className="relative max-w-sm">
+        <HugeiconsIcon
+          icon={Search01Icon}
+          strokeWidth={2}
+          className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground"
+        />
+        <Input
+          placeholder="Rechercher un site..."
+          value={nameInput}
+          onChange={(e) => setNameInput(e.target.value)}
+          className="pl-9"
+        />
+      </div>
+
       {/* Folders */}
       {folders.length > 0 && (
         <div>

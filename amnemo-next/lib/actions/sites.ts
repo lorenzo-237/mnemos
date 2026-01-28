@@ -12,11 +12,18 @@ function normalizeJson<T>(value: unknown): T | null {
   return JSON.parse(JSON.stringify(value));
 }
 
-export async function getSites(folderIds?: number[], tagIds?: number[]) {
+export async function getSites(folderIds?: number[], tagIds?: number[], name?: string) {
   const where: any = {};
 
   // Build AND conditions array
   const andConditions: any[] = [];
+
+  // Filter by name (contains, case-insensitive)
+  if (name && name.trim()) {
+    andConditions.push({
+      name: { contains: name.trim(), mode: "insensitive" },
+    });
+  }
 
   // Filter by folders (OR condition)
   if (folderIds && folderIds.length > 0) {

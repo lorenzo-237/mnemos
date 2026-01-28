@@ -14,7 +14,7 @@ import { PlusSignIcon } from "@hugeicons/core-free-icons";
 export default async function SitesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ folderIds?: string | string[]; tagIds?: string | string[] }>;
+  searchParams: Promise<{ folderIds?: string | string[]; tagIds?: string | string[]; name?: string }>;
 }) {
   const params = await searchParams;
 
@@ -32,8 +32,10 @@ export default async function SitesPage({
         : [parseInt(params.tagIds)])
     : [];
 
+  const searchName = params.name || '';
+
   const [sites, folders, tags] = await Promise.all([
-    getSites(folderIds, tagIds),
+    getSites(folderIds, tagIds, searchName),
     getFolders(),
     getTags(),
   ]);
@@ -93,6 +95,7 @@ export default async function SitesPage({
         tags={tags}
         selectedFolderIds={folderIds}
         selectedTagIds={tagIds}
+        searchName={searchName}
       />
 
       {sites.length === 0 ? (
