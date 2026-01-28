@@ -17,6 +17,7 @@ export async function getTasks(targetType?: 'SERVER' | 'CLIENT') {
 
   return await prisma.task.findMany({
     where,
+    include: { tags: { include: { tag: true } } },
     orderBy: { name: 'asc' }
   });
 }
@@ -79,6 +80,30 @@ export async function updateTask(id: number, formData: FormData) {
 export async function deleteTask(id: number) {
   await prisma.task.delete({
     where: { id }
+  });
+
+  revalidatePath('/tasks');
+}
+
+export async function addTagToTask(taskId: number, tagId: number) {
+  await prisma.taskTag.create({
+    data: {
+      taskId,
+      tagId
+    }
+  });
+
+  revalidatePath('/tasks');
+}
+
+export async function removeTagFromTask(taskId: number, tagId: number) {
+  await prisma.taskTag.delete({
+    where: {
+      taskId_tagId: {
+        taskId,
+        tagId
+      }
+    }
   });
 
   revalidatePath('/tasks');

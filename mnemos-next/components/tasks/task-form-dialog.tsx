@@ -24,7 +24,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { IconSelector } from '@/components/shared/icon-selector';
-import { createTask, updateTask } from '@/lib/actions/tasks';
+import { TagSelector } from '@/components/tags/tag-selector';
+import { createTask, updateTask, addTagToTask, removeTagFromTask } from '@/lib/actions/tasks';
 
 interface TaskFormDialogProps {
   task?: {
@@ -34,6 +35,7 @@ interface TaskFormDialogProps {
     type: 'DEFAULT' | 'SOFTWARE_REPLACEMENT';
     targetType: 'SERVER' | 'CLIENT';
     iconName?: string | null;
+    tags?: Array<{ tag: { id: number; name: string } }>;
   };
   trigger: ReactNode;
 }
@@ -46,6 +48,7 @@ export function TaskFormDialog({ task, trigger }: TaskFormDialogProps) {
   const [iconName, setIconName] = useState<string | null>(task?.iconName || null);
   const [type, setType] = useState<string>(task?.type || 'DEFAULT');
   const [targetType, setTargetType] = useState<string>(task?.targetType || 'CLIENT');
+  const [selectedTags, setSelectedTags] = useState<number[]>(task?.tags?.map(t => t.tag.id) || []);
 
   const handleSubmit = async (formData: FormData) => {
     if (iconName) {
@@ -58,6 +61,19 @@ export function TaskFormDialog({ task, trigger }: TaskFormDialogProps) {
       try {
         if (task) {
           await updateTask(task.id, formData);
+
+          // Handle tag updates
+          const currentTagIds = task.tags?.map(t => t.tag.id) || [];
+          const tagsToAdd = selectedTags.filter(id => !currentTagIds.includes(id));
+          const tagsToRemove = currentTagIds.filter(id => !selectedTags.includes(id));
+
+          for (const tagId of tagsToAdd) {
+            await addTagToTask(task.id, tagId);
+          }
+          for (const tagId of tagsToRemove) {
+            await removeTagFromTask(task.id, tagId);
+          }
+
           toast.success('Tâche modifiée avec succès');
         } else {
           await createTask(formData);
@@ -146,6 +162,14 @@ export function TaskFormDialog({ task, trigger }: TaskFormDialogProps) {
               onChange={setIconName}
               label="Icône de la tâche"
             />
+
+            {task && (
+              <TagSelector
+                selectedTagIds={selectedTags}
+                onChange={setSelectedTags}
+                label="Tags"
+              />
+            )}
           </FieldGroup>
 
           <AlertDialogFooter>

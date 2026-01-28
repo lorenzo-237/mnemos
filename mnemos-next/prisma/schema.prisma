@@ -42,6 +42,7 @@ model Tag {
   name           String          @unique
   createdAt      DateTime        @default(now())
   sites          SiteTag[]
+  tasks          TaskTag[]
   updateSessions UpdateSession[]
 
   @@map("tags")
@@ -129,9 +130,20 @@ model Task {
   targetType  MachineType   // SERVER ou CLIENT
   iconName    String?
   createdAt   DateTime      @default(now())
+  tags        TaskTag[]
   updateTasks UpdateTask[]
 
   @@map("tasks")
+}
+
+model TaskTag {
+  taskId Int
+  tagId  Int
+  task   Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  tag    Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([taskId, tagId])
+  @@map("task_tags")
 }
 
 model UpdateSession {

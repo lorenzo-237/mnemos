@@ -27,28 +27,41 @@ export default async function PrepareSessionPage({
 
   // Extraire les machines disponibles selon le dossier ou tag
   let availableMachines: any[] = [];
+  const siteTagIds = new Set<number>();
 
   if (session.folder) {
-    availableMachines = session.folder.sites.flatMap(site =>
-      site.machines.map(machine => ({
+    session.folder.sites.forEach((site) => {
+      site.tags.forEach((t) => siteTagIds.add(t.tag.id));
+    });
+    availableMachines = session.folder.sites.flatMap((site) =>
+      site.machines.map((machine) => ({
         ...machine,
         site: {
           id: site.id,
-          name: site.name
-        }
-      }))
+          name: site.name,
+        },
+      })),
     );
   } else if (session.tag) {
-    availableMachines = session.tag.sites.flatMap(siteTag =>
-      siteTag.site.machines.map(machine => ({
+    session.tag.sites.forEach((siteTag) => {
+      siteTag.site.tags.forEach((t) => siteTagIds.add(t.tag.id));
+    });
+    availableMachines = session.tag.sites.flatMap((siteTag) =>
+      siteTag.site.machines.map((machine) => ({
         ...machine,
         site: {
           id: siteTag.site.id,
-          name: siteTag.site.name
-        }
-      }))
+          name: siteTag.site.name,
+        },
+      })),
     );
   }
+
+  // Filtrer les tâches selon les tags des sites
+  const filteredTasks = tasks.filter((task) => {
+    if (task.tags.length === 0) return true;
+    return task.tags.some((tt) => siteTagIds.has(tt.tag.id));
+  });
 
   return (
     <div>
@@ -74,7 +87,7 @@ export default async function PrepareSessionPage({
       <PrepareSessionView
         session={session}
         availableMachines={availableMachines}
-        tasks={tasks}
+        tasks={filteredTasks}
         softwares={softwares}
       />
     </div>

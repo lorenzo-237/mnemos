@@ -1,15 +1,21 @@
-'use server';
+"use server";
 
-import { revalidatePath } from 'next/cache';
-import { redirect } from 'next/navigation';
-import { prisma } from '@/lib/prisma';
-import { z } from 'zod';
+import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
+import { prisma } from "@/lib/prisma";
+import { z } from "zod";
 
 const updateSessionSchema = z.object({
-  name: z.string().min(1, 'Le nom est requis').max(100),
+  name: z.string().min(1, "Le nom est requis").max(100),
   description: z.string().optional(),
-  folderId: z.preprocess((val) => val && val !== 'none' ? Number(val) : undefined, z.number().optional()),
-  tagId: z.preprocess((val) => val && val !== 'none' ? Number(val) : undefined, z.number().optional()),
+  folderId: z.preprocess(
+    (val) => (val && val !== "none" ? Number(val) : undefined),
+    z.number().optional(),
+  ),
+  tagId: z.preprocess(
+    (val) => (val && val !== "none" ? Number(val) : undefined),
+    z.number().optional(),
+  ),
 });
 
 export async function getUpdateSessions() {
@@ -18,10 +24,10 @@ export async function getUpdateSessions() {
       folder: true,
       tag: true,
       _count: {
-        select: { updateTasks: true }
-      }
+        select: { updateTasks: true },
+      },
     },
-    orderBy: { createdAt: 'desc' }
+    orderBy: { createdAt: "desc" },
   });
 }
 
@@ -33,20 +39,18 @@ export async function getUpdateSessionById(id: number) {
         include: {
           sites: {
             include: {
+              tags: { include: { tag: true } },
               machines: {
                 include: {
-                  _count: {
-                    select: {
-                      installations: {
-                        where: { removedAt: null }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
+                  installations: {
+                    where: { removedAt: null },
+                    include: { software: true },
+                  },
+                },
+              },
+            },
+          },
+        },
       },
       tag: {
         include: {
@@ -54,39 +58,34 @@ export async function getUpdateSessionById(id: number) {
             include: {
               site: {
                 include: {
+                  tags: { include: { tag: true } },
                   machines: {
                     include: {
-                      _count: {
-                        select: {
-                          installations: {
-                            where: { removedAt: null }
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
+                      installations: {
+                        where: { removedAt: null },
+                        include: { software: true },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
       },
       updateTasks: {
         include: {
           machine: {
             include: {
-              site: true
-            }
+              site: true,
+            },
           },
           task: true,
-          software: true
+          software: true,
         },
-        orderBy: [
-          { machineOrder: 'asc' },
-          { taskOrder: 'asc' }
-        ]
-      }
-    }
+        orderBy: [{ machineOrder: "asc" }, { taskOrder: "asc" }],
+      },
+    },
   });
 }
 
@@ -100,10 +99,10 @@ export async function createUpdateSession(formData: FormData) {
       description: validated.description,
       folderId: validated.folderId,
       tagId: validated.tagId,
-    }
+    },
   });
 
-  revalidatePath('/updates');
+  revalidatePath("/updates");
   redirect(`/updates/${session.id}/prepare`);
 }
 
@@ -118,28 +117,28 @@ export async function updateUpdateSession(id: number, formData: FormData) {
       description: validated.description,
       folderId: validated.folderId,
       tagId: validated.tagId,
-    }
+    },
   });
 
   revalidatePath(`/updates/${id}`);
-  revalidatePath('/updates');
+  revalidatePath("/updates");
 }
 
 export async function deleteUpdateSession(id: number) {
   await prisma.updateSession.delete({
-    where: { id }
+    where: { id },
   });
 
-  revalidatePath('/updates');
-  redirect('/updates');
+  revalidatePath("/updates");
+  redirect("/updates");
 }
 
 export async function startUpdateSession(id: number) {
   await prisma.updateSession.update({
     where: { id },
     data: {
-      startedAt: new Date()
-    }
+      startedAt: new Date(),
+    },
   });
 
   revalidatePath(`/updates/${id}`);
@@ -150,16 +149,19 @@ export async function completeUpdateSession(id: number) {
   const completedSoftwareReplacements = await prisma.updateTask.findMany({
     where: {
       updateSessionId: id,
-      status: 'COMPLETED'
+      status: "COMPLETED",
     },
     include: {
-      task: true
-    }
+      task: true,
+    },
   });
 
   // Filtrer uniquement les tâches de remplacement de logiciel avec les données complètes
   const replacementsToProcess = completedSoftwareReplacements.filter(
-    ut => ut.task.type === 'SOFTWARE_REPLACEMENT' && ut.softwareId && ut.targetVersion
+    (ut) =>
+      ut.task.type === "SOFTWARE_REPLACEMENT" &&
+      ut.softwareId &&
+      ut.targetVersion,
   );
 
   // Traiter les remplacements de logiciels dans une transaction
@@ -168,8 +170,8 @@ export async function completeUpdateSession(id: number) {
     await tx.updateSession.update({
       where: { id },
       data: {
-        completedAt: new Date()
-      }
+        completedAt: new Date(),
+      },
     });
 
     // Traiter chaque remplacement
@@ -182,8 +184,8 @@ export async function completeUpdateSession(id: number) {
           machineId,
           softwareId: softwareId!,
           version: targetVersion!,
-          removedAt: null
-        }
+          removedAt: null,
+        },
       });
 
       // Si l'installation n'existe pas déjà, procéder à la mise à jour
@@ -193,11 +195,11 @@ export async function completeUpdateSession(id: number) {
           where: {
             machineId,
             softwareId: softwareId!,
-            removedAt: null
+            removedAt: null,
           },
           data: {
-            removedAt: new Date()
-          }
+            removedAt: new Date(),
+          },
         });
 
         // Créer la nouvelle installation
@@ -206,28 +208,28 @@ export async function completeUpdateSession(id: number) {
             machineId,
             softwareId: softwareId!,
             version: targetVersion!,
-            installedAt: new Date()
-          }
+            installedAt: new Date(),
+          },
         });
       }
     }
   });
 
   revalidatePath(`/updates/${id}`);
-  revalidatePath('/updates');
-  revalidatePath('/sites');
+  revalidatePath("/updates");
+  revalidatePath("/sites");
 }
 
 export async function cancelStartUpdateSession(id: number) {
   await prisma.updateSession.update({
     where: { id },
     data: {
-      startedAt: null
-    }
+      startedAt: null,
+    },
   });
 
   revalidatePath(`/updates/${id}`);
-  revalidatePath('/updates');
+  revalidatePath("/updates");
   redirect(`/updates/${id}/prepare`);
 }
 
@@ -235,12 +237,12 @@ export async function reopenUpdateSession(id: number) {
   await prisma.updateSession.update({
     where: { id },
     data: {
-      completedAt: null
-    }
+      completedAt: null,
+    },
   });
 
   revalidatePath(`/updates/${id}`);
-  revalidatePath('/updates');
+  revalidatePath("/updates");
 }
 
 // Ajouter des tâches à une session
@@ -248,18 +250,24 @@ export async function addTasksToSession(
   sessionId: number,
   machineIds: number[],
   taskIds: number[],
-  softwareReplacements?: Record<number, { softwareId: number; targetVersion: string }>
+  softwareReplacements?: Record<
+    number,
+    { softwareId: number; targetVersion: string }
+  >,
 ) {
   // Déterminer l'ordre des machines existantes pour placer les nouvelles après
   const existingTasks = await prisma.updateTask.findMany({
     where: { updateSessionId: sessionId },
-    select: { machineId: true, machineOrder: true, taskOrder: true }
+    select: { machineId: true, machineOrder: true, taskOrder: true },
   });
 
   const existingMachineOrders = new Map<number, number>();
   let maxMachineOrder = -1;
   for (const t of existingTasks) {
-    if (!existingMachineOrders.has(t.machineId) || existingMachineOrders.get(t.machineId)! < t.machineOrder) {
+    if (
+      !existingMachineOrders.has(t.machineId) ||
+      existingMachineOrders.get(t.machineId)! < t.machineOrder
+    ) {
       existingMachineOrders.set(t.machineId, t.machineOrder);
     }
     if (t.machineOrder > maxMachineOrder) maxMachineOrder = t.machineOrder;
@@ -268,7 +276,10 @@ export async function addTasksToSession(
   const existingTaskOrders = new Map<number, number>();
   for (const t of existingTasks) {
     const key = t.machineId;
-    if (!existingTaskOrders.has(key) || existingTaskOrders.get(key)! < t.taskOrder) {
+    if (
+      !existingTaskOrders.has(key) ||
+      existingTaskOrders.get(key)! < t.taskOrder
+    ) {
       existingTaskOrders.set(key, t.taskOrder);
     }
   }
@@ -289,7 +300,7 @@ export async function addTasksToSession(
         updateSessionId: sessionId,
         machineId,
         taskId,
-        status: 'PENDING' as const,
+        status: "PENDING" as const,
         machineOrder,
         taskOrder: baseTaskOrder + i + 1,
         softwareId: softwareData?.softwareId,
@@ -300,7 +311,7 @@ export async function addTasksToSession(
 
   await prisma.updateTask.createMany({
     data: tasks,
-    skipDuplicates: true
+    skipDuplicates: true,
   });
 
   revalidatePath(`/updates/${sessionId}`);
@@ -310,14 +321,14 @@ export async function addTasksToSession(
 export async function cloneTasksToMachines(
   sessionId: number,
   sourceMachineId: number,
-  destinationMachineIds: number[]
+  destinationMachineIds: number[],
 ) {
   const sourceTasks = await prisma.updateTask.findMany({
     where: {
       updateSessionId: sessionId,
-      machineId: sourceMachineId
+      machineId: sourceMachineId,
     },
-    orderBy: { taskOrder: 'asc' }
+    orderBy: { taskOrder: "asc" },
   });
 
   if (sourceTasks.length === 0) return;
@@ -325,19 +336,22 @@ export async function cloneTasksToMachines(
   // Déterminer le max machineOrder existant
   const maxOrder = await prisma.updateTask.aggregate({
     where: { updateSessionId: sessionId },
-    _max: { machineOrder: true }
+    _max: { machineOrder: true },
   });
   let nextMachineOrder = (maxOrder._max.machineOrder ?? 0) + 1;
 
   // Déterminer les machines destinations qui existent déjà dans la session
   const existingMachineOrders = await prisma.updateTask.groupBy({
-    by: ['machineId'],
+    by: ["machineId"],
     where: { updateSessionId: sessionId },
-    _max: { machineOrder: true, taskOrder: true }
+    _max: { machineOrder: true, taskOrder: true },
   });
 
   const machineOrderMap = new Map(
-    existingMachineOrders.map(g => [g.machineId, { machineOrder: g._max.machineOrder!, taskOrder: g._max.taskOrder! }])
+    existingMachineOrders.map((g) => [
+      g.machineId,
+      { machineOrder: g._max.machineOrder!, taskOrder: g._max.taskOrder! },
+    ]),
   );
 
   const clonedTasks = [];
@@ -353,7 +367,7 @@ export async function cloneTasksToMachines(
         updateSessionId: sessionId,
         machineId: destMachineId,
         taskId: src.taskId,
-        status: 'PENDING' as const,
+        status: "PENDING" as const,
         machineOrder,
         taskOrder: baseTaskOrder + i + 1,
         softwareId: src.softwareId,
@@ -364,7 +378,7 @@ export async function cloneTasksToMachines(
 
   await prisma.updateTask.createMany({
     data: clonedTasks,
-    skipDuplicates: true
+    skipDuplicates: true,
   });
 
   revalidatePath(`/updates/${sessionId}`);
@@ -373,13 +387,13 @@ export async function cloneTasksToMachines(
 // Réordonnancer les machines dans une session
 export async function reorderMachines(
   sessionId: number,
-  machineOrder: { machineId: number; order: number }[]
+  machineOrder: { machineId: number; order: number }[],
 ) {
   await prisma.$transaction(async (tx) => {
     for (const { machineId, order } of machineOrder) {
       await tx.updateTask.updateMany({
         where: { updateSessionId: sessionId, machineId },
-        data: { machineOrder: order }
+        data: { machineOrder: order },
       });
     }
   });
@@ -391,13 +405,13 @@ export async function reorderMachines(
 export async function reorderTasks(
   sessionId: number,
   machineId: number,
-  taskOrder: { updateTaskId: number; order: number }[]
+  taskOrder: { updateTaskId: number; order: number }[],
 ) {
   await prisma.$transaction(async (tx) => {
     for (const { updateTaskId, order } of taskOrder) {
       await tx.updateTask.update({
         where: { id: updateTaskId },
-        data: { taskOrder: order }
+        data: { taskOrder: order },
       });
     }
   });
@@ -406,19 +420,26 @@ export async function reorderTasks(
 }
 
 // Modifier une tâche dans une session (notes)
-export async function updateUpdateTask(updateTaskId: number, sessionId: number, notes: string) {
+export async function updateUpdateTask(
+  updateTaskId: number,
+  sessionId: number,
+  notes: string,
+) {
   await prisma.updateTask.update({
     where: { id: updateTaskId },
-    data: { notes: notes || null }
+    data: { notes: notes || null },
   });
 
   revalidatePath(`/updates/${sessionId}`);
 }
 
 // Supprimer une tâche d'une session
-export async function removeTaskFromSession(updateTaskId: number, sessionId: number) {
+export async function removeTaskFromSession(
+  updateTaskId: number,
+  sessionId: number,
+) {
   await prisma.updateTask.delete({
-    where: { id: updateTaskId }
+    where: { id: updateTaskId },
   });
 
   revalidatePath(`/updates/${sessionId}`);
@@ -427,16 +448,17 @@ export async function removeTaskFromSession(updateTaskId: number, sessionId: num
 // Mettre à jour le statut d'une tâche
 export async function updateTaskStatus(
   updateTaskId: number,
-  status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'SKIPPED',
-  notes?: string
+  status: "PENDING" | "IN_PROGRESS" | "COMPLETED" | "SKIPPED",
+  notes?: string,
 ) {
   await prisma.updateTask.update({
     where: { id: updateTaskId },
     data: {
       status,
       notes,
-      completedAt: status === 'COMPLETED' || status === 'SKIPPED' ? new Date() : null
-    }
+      completedAt:
+        status === "COMPLETED" || status === "SKIPPED" ? new Date() : null,
+    },
   });
 
   // Note: On ne fait pas de revalidatePath ici pour éviter trop de revalidations

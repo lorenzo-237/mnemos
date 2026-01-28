@@ -6,7 +6,9 @@
       "Bash(npx shadcn@latest add:*)",
       "Bash(npm run build:*)",
       "Bash(dir:*)",
-      "Bash(ls -la \"c:\\\\Users\\\\loren\\\\Documents\\\\workspace\\\\mnemos\\\\mnemos-next\"\" | grep -v \"^. \")"
+      "Bash(ls -la \"c:\\\\Users\\\\loren\\\\Documents\\\\workspace\\\\mnemos\\\\mnemos-next\"\" | grep -v \"^. \")",
+      "Bash(ls:*)",
+      "Bash(find:*)"
     ]
   }
 }

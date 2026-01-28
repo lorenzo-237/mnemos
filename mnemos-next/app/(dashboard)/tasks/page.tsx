@@ -89,6 +89,13 @@ export default async function TasksPage() {
                               Remplacement logiciel
                             </Badge>
                           )}
+                          {task.tags.length > 0 && (
+                            <div className="flex flex-wrap gap-1">
+                              {task.tags.map(tt => (
+                                <Badge key={tt.tag.id} variant="secondary" className="text-xs">{tt.tag.name}</Badge>
+                              ))}
+                            </div>
+                          )}
                         </div>
                         <div className="flex gap-1">
                           <TaskFormDialog
@@ -153,6 +160,13 @@ export default async function TasksPage() {
                             <Badge variant="outline" className="w-fit text-xs">
                               Remplacement logiciel
                             </Badge>
+                          )}
+                          {task.tags.length > 0 && (
+                            <div className="flex flex-wrap gap-1">
+                              {task.tags.map(tt => (
+                                <Badge key={tt.tag.id} variant="secondary" className="text-xs">{tt.tag.name}</Badge>
+                              ))}
+                            </div>
                           )}
                         </div>
                         <div className="flex gap-1">
