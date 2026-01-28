@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { DynamicIcon, availableIcons, iconMap } from './dynamic-icon';
-import { HugeiconsIcon } from '@hugeicons/react';
+import { DynamicIcon, availableIcons, iconMap } from "./dynamic-icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 
 interface IconSelectorProps {
   value?: string | null;
@@ -9,7 +9,11 @@ interface IconSelectorProps {
   label?: string;
 }
 
-export function IconSelector({ value, onChange, label = "Icône" }: IconSelectorProps) {
+export function IconSelector({
+  value,
+  onChange,
+  label = "Icône",
+}: IconSelectorProps) {
   return (
     <div className="space-y-2">
       <label className="text-sm font-medium">{label}</label>
@@ -18,7 +22,7 @@ export function IconSelector({ value, onChange, label = "Icône" }: IconSelector
           {value ? (
             <div className="flex items-center gap-2 p-2 border rounded-md">
               <DynamicIcon iconName={value} />
-              <span className="text-sm">{value.replace('Icon', '')}</span>
+              <span className="text-sm">{value.replace("Icon", "")}</span>
             </div>
           ) : (
             <div className="p-2 border rounded-md text-sm text-muted-foreground">
@@ -47,9 +51,9 @@ export function IconSelector({ value, onChange, label = "Icône" }: IconSelector
               className={`
                 p-2 rounded-md transition-all
                 hover:bg-muted
-                ${value === iconName ? 'bg-primary/10 ring-1 ring-primary' : ''}
+                ${value === iconName ? "bg-primary/10 ring-1 ring-primary" : ""}
               `}
-              title={iconName.replace('Icon', '')}
+              title={iconName.replace("Icon", "")}
             >
               <HugeiconsIcon icon={Icon} strokeWidth={2} className="w-4 h-4" />
             </button>

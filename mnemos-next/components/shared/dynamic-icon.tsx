@@ -49,7 +49,9 @@ const iconMap: Record<string, any> = {
 };
 
 // Default icon if none specified
-const DEFAULT_ICON = BuildingIcon;
+const DEFAULT_ICON = ComputerIcon;
+
+export const DEFAULT_ICON_NAME = "ComputerIcon";
 
 interface DynamicIconProps {
   iconName?: string | null;

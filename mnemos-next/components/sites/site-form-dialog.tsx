@@ -32,6 +32,7 @@ import { createSite, updateSite } from "@/lib/actions/sites";
 import { getFolders } from "@/lib/actions/folders";
 import { addTagToSite, removeTagFromSite } from "@/lib/actions/tags";
 import type { SiteFormData } from "@/lib/types";
+import { DEFAULT_ICON_NAME } from "../shared/dynamic-icon";
 
 interface SiteFormDialogProps {
   site?: SiteFormData;
@@ -45,7 +46,7 @@ export function SiteFormDialog({ site, trigger }: SiteFormDialogProps) {
 
   // Form state
   const [iconName, setIconName] = useState<string | null>(
-    site?.iconName || null,
+    site?.iconName || DEFAULT_ICON_NAME,
   );
   const [metadata, setMetadata] = useState<Record<
     string,
@@ -132,7 +133,7 @@ export function SiteFormDialog({ site, trigger }: SiteFormDialogProps) {
     <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger asChild>{trigger}</AlertDialogTrigger>
 
-      <AlertDialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
+      <AlertDialogContent className="max-h-[90vh] overflow-y-auto" size="large">
         <form action={handleSubmit}>
           <AlertDialogHeader>
             <AlertDialogTitle>
@@ -141,99 +142,112 @@ export function SiteFormDialog({ site, trigger }: SiteFormDialogProps) {
           </AlertDialogHeader>
 
           <FieldGroup className="space-y-4 my-4">
-            <Field>
-              <FieldLabel htmlFor="name">Nom du site *</FieldLabel>
-              <Input
-                id="name"
-                name="name"
-                defaultValue={site?.name}
-                placeholder="Siège social"
-                required
-              />
-            </Field>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="flex flex-col gap-4">
+                <Field>
+                  <FieldLabel htmlFor="name">Nom du site *</FieldLabel>
+                  <Input
+                    id="name"
+                    name="name"
+                    defaultValue={site?.name}
+                    placeholder="Siège social"
+                    required
+                  />
+                </Field>
 
-            <Field>
-              <FieldLabel htmlFor="description">Description</FieldLabel>
-              <Textarea
-                id="description"
-                name="description"
-                defaultValue={site?.description || ""}
-                placeholder="Description du site..."
-                rows={3}
-              />
-            </Field>
+                <Field>
+                  <FieldLabel htmlFor="description">Description</FieldLabel>
+                  <Textarea
+                    id="description"
+                    name="description"
+                    defaultValue={site?.description || ""}
+                    placeholder="Description du site..."
+                    rows={3}
+                  />
+                </Field>
 
-            <Field>
-              <FieldLabel htmlFor="folderId">Dossier</FieldLabel>
-              {loadingFolders ? (
-                <div className="text-sm text-muted-foreground">
-                  Chargement...
+                <Field>
+                  <FieldLabel htmlFor="folderId">Dossier</FieldLabel>
+                  {loadingFolders ? (
+                    <div className="text-sm text-muted-foreground">
+                      Chargement...
+                    </div>
+                  ) : (
+                    <Select
+                      value={selectedFolderId}
+                      onValueChange={setSelectedFolderId}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Aucun dossier" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Aucun dossier</SelectItem>
+                        {folders.map((folder) => (
+                          <SelectItem
+                            key={folder.id}
+                            value={folder.id.toString()}
+                          >
+                            {folder.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                </Field>
+
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="isObsolete"
+                    checked={isObsolete}
+                    onCheckedChange={(checked) =>
+                      setIsObsolete(checked as boolean)
+                    }
+                  />
+                  <Label htmlFor="isObsolete" className="text-sm font-medium">
+                    Site obsolète
+                  </Label>
                 </div>
-              ) : (
-                <Select
-                  value={selectedFolderId}
-                  onValueChange={setSelectedFolderId}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Aucun dossier" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">Aucun dossier</SelectItem>
-                    {folders.map((folder) => (
-                      <SelectItem key={folder.id} value={folder.id.toString()}>
-                        {folder.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-            </Field>
 
-            <IconSelector
-              value={iconName}
-              onChange={setIconName}
-              label="Icône du site"
-            />
+                {isObsolete && (
+                  <Field>
+                    <FieldLabel htmlFor="obsoleteReason">
+                      Raison de l'obsolescence
+                    </FieldLabel>
+                    <Textarea
+                      id="obsoleteReason"
+                      name="obsoleteReason"
+                      defaultValue={site?.obsoleteReason || ""}
+                      placeholder="Expliquez pourquoi ce site est obsolète..."
+                      rows={2}
+                    />
+                  </Field>
+                )}
+              </div>
 
-            {site && (
-              <TagSelector
-                selectedTagIds={selectedTags}
-                onChange={setSelectedTags}
-                label="Tags"
-              />
-            )}
-
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="isObsolete"
-                checked={isObsolete}
-                onCheckedChange={(checked) => setIsObsolete(checked as boolean)}
-              />
-              <Label htmlFor="isObsolete" className="text-sm font-medium">
-                Site obsolète
-              </Label>
-            </div>
-
-            {isObsolete && (
-              <Field>
-                <FieldLabel htmlFor="obsoleteReason">
-                  Raison de l'obsolescence
-                </FieldLabel>
-                <Textarea
-                  id="obsoleteReason"
-                  name="obsoleteReason"
-                  defaultValue={site?.obsoleteReason || ""}
-                  placeholder="Expliquez pourquoi ce site est obsolète..."
-                  rows={2}
+              <div className="flex flex-col gap-4">
+                <IconSelector
+                  value={iconName}
+                  onChange={setIconName}
+                  label="Icône du site"
                 />
-              </Field>
-            )}
 
-            <MetadataEditor
-              value={metadata}
-              onChange={setMetadata}
-              label="Métadonnées personnalisées"
-            />
+                {site && (
+                  <TagSelector
+                    selectedTagIds={selectedTags}
+                    onChange={setSelectedTags}
+                    label="Tags"
+                  />
+                )}
+              </div>
+
+              <div className="col-span-2">
+                <MetadataEditor
+                  value={metadata}
+                  onChange={setMetadata}
+                  label="Métadonnées personnalisées"
+                />
+              </div>
+            </div>
           </FieldGroup>
 
           <AlertDialogFooter>
