@@ -52,6 +52,13 @@ export const machineSchema = z.object({
   teamviewerPwd: z.string().optional(),
 });
 
+export const softwareSchema = z.object({
+  name: z.string().min(1, "Le nom du logiciel est requis").max(100),
+  description: z.string().optional().nullable(),
+  iconName: z.string().optional().nullable(),
+  metadata: metadataSchema,
+});
+
 export const installationSchema = z.object({
   softwareName: z.string().min(1, "Le nom du logiciel est requis").max(100),
   version: z.string().min(1, "La version est requise").max(50),
@@ -65,5 +72,6 @@ export const updateSoftwareSchema = z.object({
 
 export type SiteSchemaData = z.infer<typeof siteSchema>;
 export type MachineSchemaData = z.infer<typeof machineSchema>;
+export type SoftwareSchemaData = z.infer<typeof softwareSchema>;
 export type InstallationSchemaData = z.infer<typeof installationSchema>;
 export type UpdateSoftwareSchemaData = z.infer<typeof updateSoftwareSchema>;

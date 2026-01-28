@@ -160,6 +160,8 @@ model UpdateTask {
   status                TaskStatus     @default(PENDING)
   notes                 String?
   completedAt           DateTime?
+  machineOrder          Int            @default(0)  // Ordre de la machine dans la session
+  taskOrder             Int            @default(0)  // Ordre de la tâche dans la machine
   // Champs pour les tâches de remplacement de logiciel
   softwareId            Int?           // Logiciel cible pour les tâches de type SOFTWARE_REPLACEMENT
   targetVersion         String?        // Version cible du logiciel

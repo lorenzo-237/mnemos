@@ -82,8 +82,8 @@ export async function getUpdateSessionById(id: number) {
           software: true
         },
         orderBy: [
-          { machine: { site: { name: 'asc' } } },
-          { machine: { name: 'asc' } }
+          { machineOrder: 'asc' },
+          { taskOrder: 'asc' }
         ]
       }
     }
@@ -250,10 +250,39 @@ export async function addTasksToSession(
   taskIds: number[],
   softwareReplacements?: Record<number, { softwareId: number; targetVersion: string }>
 ) {
+  // Déterminer l'ordre des machines existantes pour placer les nouvelles après
+  const existingTasks = await prisma.updateTask.findMany({
+    where: { updateSessionId: sessionId },
+    select: { machineId: true, machineOrder: true, taskOrder: true }
+  });
+
+  const existingMachineOrders = new Map<number, number>();
+  let maxMachineOrder = -1;
+  for (const t of existingTasks) {
+    if (!existingMachineOrders.has(t.machineId) || existingMachineOrders.get(t.machineId)! < t.machineOrder) {
+      existingMachineOrders.set(t.machineId, t.machineOrder);
+    }
+    if (t.machineOrder > maxMachineOrder) maxMachineOrder = t.machineOrder;
+  }
+
+  const existingTaskOrders = new Map<number, number>();
+  for (const t of existingTasks) {
+    const key = t.machineId;
+    if (!existingTaskOrders.has(key) || existingTaskOrders.get(key)! < t.taskOrder) {
+      existingTaskOrders.set(key, t.taskOrder);
+    }
+  }
+
   const tasks = [];
 
   for (const machineId of machineIds) {
-    for (const taskId of taskIds) {
+    const machineOrder = existingMachineOrders.has(machineId)
+      ? existingMachineOrders.get(machineId)!
+      : ++maxMachineOrder;
+    const baseTaskOrder = existingTaskOrders.get(machineId) ?? -1;
+
+    for (let i = 0; i < taskIds.length; i++) {
+      const taskId = taskIds[i];
       const softwareData = softwareReplacements?.[taskId];
 
       tasks.push({
@@ -261,6 +290,8 @@ export async function addTasksToSession(
         machineId,
         taskId,
         status: 'PENDING' as const,
+        machineOrder,
+        taskOrder: baseTaskOrder + i + 1,
         softwareId: softwareData?.softwareId,
         targetVersion: softwareData?.targetVersion,
       });
@@ -270,6 +301,115 @@ export async function addTasksToSession(
   await prisma.updateTask.createMany({
     data: tasks,
     skipDuplicates: true
+  });
+
+  revalidatePath(`/updates/${sessionId}`);
+}
+
+// Cloner les tâches d'une machine source vers une ou plusieurs machines destinations
+export async function cloneTasksToMachines(
+  sessionId: number,
+  sourceMachineId: number,
+  destinationMachineIds: number[]
+) {
+  const sourceTasks = await prisma.updateTask.findMany({
+    where: {
+      updateSessionId: sessionId,
+      machineId: sourceMachineId
+    },
+    orderBy: { taskOrder: 'asc' }
+  });
+
+  if (sourceTasks.length === 0) return;
+
+  // Déterminer le max machineOrder existant
+  const maxOrder = await prisma.updateTask.aggregate({
+    where: { updateSessionId: sessionId },
+    _max: { machineOrder: true }
+  });
+  let nextMachineOrder = (maxOrder._max.machineOrder ?? 0) + 1;
+
+  // Déterminer les machines destinations qui existent déjà dans la session
+  const existingMachineOrders = await prisma.updateTask.groupBy({
+    by: ['machineId'],
+    where: { updateSessionId: sessionId },
+    _max: { machineOrder: true, taskOrder: true }
+  });
+
+  const machineOrderMap = new Map(
+    existingMachineOrders.map(g => [g.machineId, { machineOrder: g._max.machineOrder!, taskOrder: g._max.taskOrder! }])
+  );
+
+  const clonedTasks = [];
+
+  for (const destMachineId of destinationMachineIds) {
+    const existing = machineOrderMap.get(destMachineId);
+    const machineOrder = existing?.machineOrder ?? nextMachineOrder++;
+    const baseTaskOrder = existing?.taskOrder ?? 0;
+
+    for (let i = 0; i < sourceTasks.length; i++) {
+      const src = sourceTasks[i];
+      clonedTasks.push({
+        updateSessionId: sessionId,
+        machineId: destMachineId,
+        taskId: src.taskId,
+        status: 'PENDING' as const,
+        machineOrder,
+        taskOrder: baseTaskOrder + i + 1,
+        softwareId: src.softwareId,
+        targetVersion: src.targetVersion,
+      });
+    }
+  }
+
+  await prisma.updateTask.createMany({
+    data: clonedTasks,
+    skipDuplicates: true
+  });
+
+  revalidatePath(`/updates/${sessionId}`);
+}
+
+// Réordonnancer les machines dans une session
+export async function reorderMachines(
+  sessionId: number,
+  machineOrder: { machineId: number; order: number }[]
+) {
+  await prisma.$transaction(async (tx) => {
+    for (const { machineId, order } of machineOrder) {
+      await tx.updateTask.updateMany({
+        where: { updateSessionId: sessionId, machineId },
+        data: { machineOrder: order }
+      });
+    }
+  });
+
+  revalidatePath(`/updates/${sessionId}`);
+}
+
+// Réordonnancer les tâches dans une machine
+export async function reorderTasks(
+  sessionId: number,
+  machineId: number,
+  taskOrder: { updateTaskId: number; order: number }[]
+) {
+  await prisma.$transaction(async (tx) => {
+    for (const { updateTaskId, order } of taskOrder) {
+      await tx.updateTask.update({
+        where: { id: updateTaskId },
+        data: { taskOrder: order }
+      });
+    }
+  });
+
+  revalidatePath(`/updates/${sessionId}`);
+}
+
+// Modifier une tâche dans une session (notes)
+export async function updateUpdateTask(updateTaskId: number, sessionId: number, notes: string) {
+  await prisma.updateTask.update({
+    where: { id: updateTaskId },
+    data: { notes: notes || null }
   });
 
   revalidatePath(`/updates/${sessionId}`);

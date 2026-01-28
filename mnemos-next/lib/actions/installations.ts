@@ -27,9 +27,9 @@ export async function addInstallation(machineId: number, formData: FormData) {
   const rawData = Object.fromEntries(formData);
   const validatedData = installationSchema.parse(rawData);
 
-  // Créer le logiciel s'il n'existe pas
-  let software = await prisma.software.findUnique({
-    where: { name: validatedData.softwareName }
+  // Chercher le logiciel de manière case-insensitive
+  let software = await prisma.software.findFirst({
+    where: { name: { contains: validatedData.softwareName, mode: 'insensitive' } }
   });
 
   if (!software) {

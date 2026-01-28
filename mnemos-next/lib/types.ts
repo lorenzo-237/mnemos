@@ -30,6 +30,15 @@ export interface MetadataValue {
   iconName?: string;
 }
 
+export interface SoftwareFormData {
+  id: number;
+  name: string;
+  description?: string | null;
+  iconName?: string | null;
+  metadata?: Record<string, MetadataValue> | null;
+  createdAt: Date;
+}
+
 export interface SiteFormData {
   id: number;
   name: string;

@@ -103,18 +103,22 @@ export function TrackSessionView({ session }: TrackSessionViewProps) {
     }
   };
 
-  // Grouper les tâches par machine
-  const tasksByMachine = optimisticTasks.reduce((acc: any, task: any) => {
-    const machineKey = `${task.machine.site.id}-${task.machine.id}`;
-    if (!acc[machineKey]) {
-      acc[machineKey] = {
-        machine: task.machine,
-        tasks: []
-      };
+  // Grouper les tâches par machine dans l'ordre défini à la préparation
+  const tasksByMachineMap: Record<string, { machine: any; tasks: any[] }> = {};
+  for (const task of optimisticTasks) {
+    const key = task.machine.id.toString();
+    if (!tasksByMachineMap[key]) {
+      tasksByMachineMap[key] = { machine: task.machine, tasks: [] };
     }
-    acc[machineKey].tasks.push(task);
-    return acc;
-  }, {});
+    tasksByMachineMap[key].tasks.push(task);
+  }
+  // Trier les groupes par machineOrder, et les tâches par taskOrder
+  const tasksByMachine = Object.values(tasksByMachineMap)
+    .sort((a, b) => (a.tasks[0]?.machineOrder ?? 0) - (b.tasks[0]?.machineOrder ?? 0))
+    .map(g => {
+      g.tasks.sort((a: any, b: any) => (a.taskOrder ?? 0) - (b.taskOrder ?? 0));
+      return g;
+    });
 
   // Statistiques
   const totalTasks = optimisticTasks.length;
@@ -222,8 +226,8 @@ export function TrackSessionView({ session }: TrackSessionViewProps) {
 
       {/* Tasks by machine */}
       <div className="space-y-4">
-        {Object.values(tasksByMachine).map(({ machine, tasks }: any) => (
-          <Card key={`${machine.site.id}-${machine.id}`}>
+        {tasksByMachine.map(({ machine, tasks }: any) => (
+          <Card key={machine.id}>
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
