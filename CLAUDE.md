@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Mnemos is a Next.js 16 application for IT infrastructure management (inventory-focused) built with React 19, TypeScript, and PostgreSQL. The project uses:
+Amnemo is a Next.js 16 application for IT infrastructure management (inventory-focused) built with React 19, TypeScript, and PostgreSQL. The project uses:
 - **Next.js App Router** with React Server Components and Server Actions
 - **shadcn/ui** components (radix-lyra style) built on Base UI and Radix UI primitives
 - **Tailwind CSS 4** for styling

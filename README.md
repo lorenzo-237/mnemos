@@ -1,4 +1,4 @@
-# Mnemos - Gestion de Parc Informatique
+# Amnemo - Gestion de Parc Informatique
 
 Application Next.js 16 de gestion de parc informatique avec historisation des versions logicielles.
 

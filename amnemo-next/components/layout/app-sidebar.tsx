@@ -29,7 +29,7 @@ export function AppSidebar() {
   return (
     <aside className="w-64 border-r bg-card h-screen flex flex-col">
       <div className="p-6">
-        <h1 className="text-xl font-bold">Mnemos</h1>
+        <h1 className="text-xl font-bold">Amnemo</h1>
         <p className="text-xs text-muted-foreground mt-1">Gestion de parc</p>
       </div>
 
