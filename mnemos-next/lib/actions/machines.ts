@@ -9,6 +9,23 @@ import {
 } from "@/lib/crypto";
 import { machineSchema } from "@/lib/validators";
 
+export async function getAllMachines() {
+  return prisma.machine.findMany({
+    include: {
+      site: {
+        include: {
+          tags: { include: { tag: true } },
+        },
+      },
+      installations: {
+        where: { removedAt: null },
+        include: { software: true },
+      },
+    },
+    orderBy: { name: "asc" },
+  });
+}
+
 export async function getMachinesBySiteId(siteId: number) {
   return prisma.machine.findMany({
     where: { siteId },
