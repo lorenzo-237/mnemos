@@ -75,3 +75,26 @@ export type MachineSchemaData = z.infer<typeof machineSchema>;
 export type SoftwareSchemaData = z.infer<typeof softwareSchema>;
 export type InstallationSchemaData = z.infer<typeof installationSchema>;
 export type UpdateSoftwareSchemaData = z.infer<typeof updateSoftwareSchema>;
+
+export const userSchema = z.object({
+  username: z.string().min(3, "Le nom d'utilisateur doit avoir au moins 3 caractères").max(50),
+  password: z.string().min(8, "Le mot de passe doit avoir au moins 8 caractères"),
+  role: z.enum(["UTILISATEUR", "GESTIONNAIRE", "ADMIN"]).default("UTILISATEUR"),
+});
+
+export const organizationSchema = z.object({
+  name: z.string().min(1, "Le nom de l'organisation est requis").max(100),
+});
+
+export const folderSchema = z.object({
+  name: z.string().min(1, "Le nom du dossier est requis").max(100),
+});
+
+export const tagSchema = z.object({
+  name: z.string().min(1, "Le nom du tag est requis").max(100),
+});
+
+export type UserSchemaData = z.infer<typeof userSchema>;
+export type OrganizationSchemaData = z.infer<typeof organizationSchema>;
+export type FolderSchemaData = z.infer<typeof folderSchema>;
+export type TagSchemaData = z.infer<typeof tagSchema>;

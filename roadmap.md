@@ -93,3 +93,4 @@ Regle simple: si l'utilisateur n'est pas authentifié je redirige vers une page 
 
 [] EVO - Authentification
 [] Possibilité de changer d'organisation simplement dans la sidebar
+[] question : actuellement le jwt contient le role, côté server action c'est le token qui décide en fonction du role. Pour les affichages je pense c'est bon. Mais côté serveur ne faut il pas appeler la base pour vérifier les informations extraites du token ?

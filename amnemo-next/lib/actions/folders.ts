@@ -3,14 +3,14 @@
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
-import { z } from 'zod';
-
-const folderSchema = z.object({
-  name: z.string().min(1, 'Le nom est requis').max(100, 'Le nom est trop long'),
-});
+import { requireSession } from '@/lib/auth/session';
+import { folderSchema } from '@/lib/validators';
 
 export async function getFolders() {
+  const session = await requireSession();
+
   return await prisma.folder.findMany({
+    where: { organizationId: session.organizationId },
     include: {
       _count: {
         select: { sites: true }
@@ -21,7 +21,9 @@ export async function getFolders() {
 }
 
 export async function getFolderById(id: number) {
-  return await prisma.folder.findUnique({
+  const session = await requireSession();
+
+  const folder = await prisma.folder.findUnique({
     where: { id },
     include: {
       sites: {
@@ -33,9 +35,17 @@ export async function getFolderById(id: number) {
       }
     }
   });
+
+  if (!folder || folder.organizationId !== session.organizationId) {
+    return null;
+  }
+
+  return folder;
 }
 
 export async function createFolder(formData: FormData) {
+  const session = await requireSession();
+
   const rawData = {
     name: formData.get('name') as string,
   };
@@ -43,7 +53,11 @@ export async function createFolder(formData: FormData) {
   const validated = folderSchema.parse(rawData);
 
   await prisma.folder.create({
-    data: validated
+    data: {
+      ...validated,
+      organizationId: session.organizationId,
+      createdById: session.userId,
+    }
   });
 
   revalidatePath('/sites');
@@ -51,6 +65,8 @@ export async function createFolder(formData: FormData) {
 }
 
 export async function updateFolder(id: number, formData: FormData) {
+  const session = await requireSession();
+
   const rawData = {
     name: formData.get('name') as string,
   };
@@ -58,17 +74,33 @@ export async function updateFolder(id: number, formData: FormData) {
   const validated = folderSchema.parse(rawData);
 
   await prisma.folder.update({
-    where: { id },
-    data: validated
+    where: {
+      id,
+      organizationId: session.organizationId
+    },
+    data: {
+      ...validated,
+      updatedById: session.userId
+    }
   });
 
   revalidatePath('/sites');
 }
 
 export async function deleteFolder(id: number) {
-  await prisma.folder.delete({
-    where: { id }
+  const session = await requireSession();
+
+  if (session.role === "UTILISATEUR") {
+    throw new Error("Permission insuffisante");
+  }
+
+  const folder = await prisma.folder.findUnique({
+    where: { id, organizationId: session.organizationId },
   });
+
+  if (!folder) throw new Error("Dossier non trouvé");
+
+  await prisma.folder.delete({ where: { id } });
 
   revalidatePath('/sites');
   redirect('/sites');

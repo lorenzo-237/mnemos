@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { requireSession } from "@/lib/auth/session";
 import { z } from "zod";
 
 const updateSessionSchema = z.object({
@@ -19,7 +20,10 @@ const updateSessionSchema = z.object({
 });
 
 export async function getUpdateSessions() {
+  const session = await requireSession();
+
   return await prisma.updateSession.findMany({
+    where: { organizationId: session.organizationId },
     include: {
       folder: true,
       tag: true,
@@ -32,7 +36,9 @@ export async function getUpdateSessions() {
 }
 
 export async function getUpdateSessionById(id: number) {
-  return await prisma.updateSession.findUnique({
+  const session = await requireSession();
+
+  const updateSession = await prisma.updateSession.findUnique({
     where: { id },
     include: {
       folder: {
@@ -87,26 +93,58 @@ export async function getUpdateSessionById(id: number) {
       },
     },
   });
+
+  if (!updateSession || updateSession.organizationId !== session.organizationId) {
+    return null;
+  }
+
+  return updateSession;
 }
 
 export async function createUpdateSession(formData: FormData) {
+  const session = await requireSession();
   const rawData = Object.fromEntries(formData);
   const validated = updateSessionSchema.parse(rawData);
 
-  const session = await prisma.updateSession.create({
+  const updateSession = await prisma.updateSession.create({
     data: {
       name: validated.name,
       description: validated.description,
       folderId: validated.folderId,
       tagId: validated.tagId,
+      organizationId: session.organizationId,
+      createdById: session.userId,
     },
   });
 
   revalidatePath("/updates");
-  redirect(`/updates/${session.id}/prepare`);
+  redirect(`/updates/${updateSession.id}/prepare`);
 }
 
 export async function updateUpdateSession(id: number, formData: FormData) {
+  const session = await requireSession();
+  const rawData = Object.fromEntries(formData);
+  const validated = updateSessionSchema.parse(rawData);
+
+  await prisma.updateSession.update({
+    where: {
+      id,
+      organizationId: session.organizationId
+    },
+    data: {
+      name: validated.name,
+      description: validated.description,
+      folderId: validated.folderId,
+      tagId: validated.tagId,
+      updatedById: session.userId,
+    },
+  });
+
+  revalidatePath("/updates");
+  revalidatePath(`/updates/${id}`);
+}
+
+async function _oldUpdateUpdateSession(id: number, formData: FormData) {
   const rawData = Object.fromEntries(formData);
   const validated = updateSessionSchema.parse(rawData);
 

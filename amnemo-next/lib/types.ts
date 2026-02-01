@@ -14,6 +14,20 @@ export const TaskType = {
 
 export type TaskType = (typeof TaskType)[keyof typeof TaskType];
 
+export const UserRole = {
+  UTILISATEUR: "UTILISATEUR",
+  GESTIONNAIRE: "GESTIONNAIRE",
+  ADMIN: "ADMIN",
+} as const;
+
+export type UserRole = (typeof UserRole)[keyof typeof UserRole];
+
+export interface SessionContext {
+  userId: number;
+  organizationId: number;
+  role: UserRole;
+}
+
 // Types pour les composants client
 export interface MachineFormData {
   id: number;

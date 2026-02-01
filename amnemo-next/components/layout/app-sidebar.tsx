@@ -10,9 +10,12 @@ import {
   SettingsIcon,
   TaskIcon,
   RefreshIcon,
-  RemoteControlIcon
+  RemoteControlIcon,
+  UserSettings02Icon,
 } from '@hugeicons/core-free-icons';
 import { ThemeToggle } from '@/components/theme-toggle';
+import { OrgSwitcher } from '@/components/layout/org-switcher';
+import { LogoutButton } from '@/components/layout/logout-button';
 
 const navigation = [
   { name: 'Sites', href: '/sites', icon: BuildingIcon },
@@ -23,7 +26,13 @@ const navigation = [
   { name: 'Paramètres', href: '/parametres', icon: SettingsIcon },
 ];
 
-export function AppSidebar() {
+interface AppSidebarProps {
+  organizations: Array<{ id: number; name: string }>;
+  currentOrgId: number;
+  userRole: 'UTILISATEUR' | 'GESTIONNAIRE' | 'ADMIN';
+}
+
+export function AppSidebar({ organizations, currentOrgId, userRole }: AppSidebarProps) {
   const pathname = usePathname();
 
   return (
@@ -53,14 +62,37 @@ export function AppSidebar() {
             </Link>
           );
         })}
+
+        {userRole === 'ADMIN' && (
+          <>
+            <div className="my-2 border-t" />
+            <Link
+              href="/admin"
+              className={cn(
+                'flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors',
+                pathname.startsWith('/admin')
+                  ? 'bg-primary text-primary-foreground'
+                  : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+              )}
+            >
+              <HugeiconsIcon icon={UserSettings02Icon} strokeWidth={2} className="size-5" />
+              Administration
+            </Link>
+          </>
+        )}
       </nav>
 
-      <div className="p-3 border-t">
-        <ThemeToggle />
-      </div>
+      <div className="mt-auto">
+        <OrgSwitcher organizations={organizations} currentOrgId={currentOrgId} />
 
-      <div className="p-4 border-t text-xs text-muted-foreground">
-        v0.1.0 MVP
+        <div className="p-3 border-t space-y-2">
+          <ThemeToggle />
+          <LogoutButton />
+        </div>
+
+        <div className="p-4 border-t text-xs text-muted-foreground">
+          v0.1.0 MVP - Phase 4
+        </div>
       </div>
     </aside>
   );

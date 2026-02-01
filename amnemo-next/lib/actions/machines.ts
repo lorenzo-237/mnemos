@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { requireSession } from "@/lib/auth/session";
 import {
   encryptTeamViewerPassword,
   decryptTeamViewerPassword,
@@ -10,7 +11,14 @@ import {
 import { machineSchema } from "@/lib/validators";
 
 export async function getAllMachines() {
+  const session = await requireSession();
+
   return prisma.machine.findMany({
+    where: {
+      site: {
+        organizationId: session.organizationId
+      }
+    },
     include: {
       site: {
         include: {
@@ -27,6 +35,15 @@ export async function getAllMachines() {
 }
 
 export async function getMachinesBySiteId(siteId: number) {
+  const session = await requireSession();
+
+  // Verify site belongs to organization
+  const site = await prisma.site.findUnique({
+    where: { id: siteId, organizationId: session.organizationId },
+  });
+
+  if (!site) return [];
+
   return prisma.machine.findMany({
     where: { siteId },
     include: {
@@ -43,6 +60,8 @@ export async function getMachinesBySiteId(siteId: number) {
 }
 
 export async function getMachineById(id: number) {
+  const session = await requireSession();
+
   const machine = await prisma.machine.findUnique({
     where: { id },
     include: {
@@ -55,20 +74,32 @@ export async function getMachineById(id: number) {
     },
   });
 
-  if (!machine) return null;
+  if (!machine || machine.site.organizationId !== session.organizationId) {
+    return null;
+  }
 
-  // Déchiffrer le mot de passe TeamViewer pour l'affichage
+  // Déchiffrer le mot de passe TeamViewer seulement pour GESTIONNAIRE et ADMIN
+  const canViewPassword = session.role !== "UTILISATEUR";
+
   return {
     ...machine,
-    teamviewerPwdDecrypted: machine.teamviewerPwd
+    teamviewerPwdDecrypted: canViewPassword && machine.teamviewerPwd
       ? decryptTeamViewerPassword(machine.teamviewerPwd)
       : null,
   };
 }
 
 export async function createMachine(siteId: number, formData: FormData) {
+  const session = await requireSession();
   const rawData = Object.fromEntries(formData);
   const validatedData = machineSchema.parse(rawData);
+
+  // Verify site belongs to organization
+  const site = await prisma.site.findUnique({
+    where: { id: siteId, organizationId: session.organizationId },
+  });
+
+  if (!site) throw new Error("Site non trouvé");
 
   const encryptedPwd = validatedData.teamviewerPwd
     ? encryptTeamViewerPassword(validatedData.teamviewerPwd)
@@ -88,15 +119,18 @@ export async function createMachine(siteId: number, formData: FormData) {
 }
 
 export async function updateMachine(id: number, formData: FormData) {
+  const session = await requireSession();
   const rawData = Object.fromEntries(formData);
   const validatedData = machineSchema.parse(rawData);
 
   const machine = await prisma.machine.findUnique({
     where: { id },
-    select: { siteId: true },
+    include: { site: true },
   });
 
-  if (!machine) throw new Error("Machine not found");
+  if (!machine || machine.site.organizationId !== session.organizationId) {
+    throw new Error("Machine non trouvée");
+  }
 
   const encryptedPwd = validatedData.teamviewerPwd
     ? encryptTeamViewerPassword(validatedData.teamviewerPwd)
@@ -117,12 +151,20 @@ export async function updateMachine(id: number, formData: FormData) {
 }
 
 export async function deleteMachine(id: number) {
+  const session = await requireSession();
+
+  if (session.role === "UTILISATEUR") {
+    throw new Error("Permission insuffisante");
+  }
+
   const machine = await prisma.machine.findUnique({
     where: { id },
-    select: { siteId: true },
+    include: { site: true },
   });
 
-  if (!machine) throw new Error("Machine not found");
+  if (!machine || machine.site.organizationId !== session.organizationId) {
+    throw new Error("Machine non trouvée");
+  }
 
   await prisma.machine.delete({ where: { id } });
 

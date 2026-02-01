@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/prisma';
+import { requireSession } from '@/lib/auth/session';
 import { z } from 'zod';
 
 const taskSchema = z.object({
@@ -13,7 +14,12 @@ const taskSchema = z.object({
 });
 
 export async function getTasks(targetType?: 'SERVER' | 'CLIENT') {
-  const where = targetType ? { targetType } : {};
+  const session = await requireSession();
+  const where: any = { organizationId: session.organizationId };
+
+  if (targetType) {
+    where.targetType = targetType;
+  }
 
   return await prisma.task.findMany({
     where,
@@ -23,12 +29,21 @@ export async function getTasks(targetType?: 'SERVER' | 'CLIENT') {
 }
 
 export async function getTaskById(id: number) {
-  return await prisma.task.findUnique({
+  const session = await requireSession();
+
+  const task = await prisma.task.findUnique({
     where: { id }
   });
+
+  if (!task || task.organizationId !== session.organizationId) {
+    return null;
+  }
+
+  return task;
 }
 
 export async function createTask(formData: FormData) {
+  const session = await requireSession();
   const rawData = {
     name: formData.get('name') as string,
     description: formData.get('description') as string,
@@ -46,6 +61,8 @@ export async function createTask(formData: FormData) {
       type: validated.type,
       targetType: validated.targetType,
       iconName: validated.iconName,
+      organizationId: session.organizationId,
+      createdById: session.userId,
     }
   });
 

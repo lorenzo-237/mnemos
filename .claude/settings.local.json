@@ -8,7 +8,11 @@
       "Bash(dir:*)",
       "Bash(ls -la \"c:\\\\Users\\\\loren\\\\Documents\\\\workspace\\\\mnemos\\\\mnemos-next\"\" | grep -v \"^. \")",
       "Bash(ls:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(npm install:*)",
+      "Bash(openssl rand:*)",
+      "Bash(npm run tsx:*)",
+      "Bash(npx tsx:*)"
     ]
   }
 }

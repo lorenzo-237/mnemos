@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { requireSession } from "@/lib/auth/session";
 import { siteSchema } from "@/lib/validators";
 import { MetadataValue } from "../types";
 import { Prisma } from "@/generated/prisma/client";
@@ -13,7 +14,8 @@ function normalizeJson<T>(value: unknown): T | null {
 }
 
 export async function getSites(folderIds?: number[], tagIds?: number[], name?: string) {
-  const where: any = {};
+  const session = await requireSession();
+  const where: any = { organizationId: session.organizationId };
 
   // Build AND conditions array
   const andConditions: any[] = [];
@@ -81,6 +83,8 @@ export async function getSites(folderIds?: number[], tagIds?: number[], name?: s
 }
 
 export async function getSiteById(id: number) {
+  const session = await requireSession();
+
   const site = await prisma.site.findUnique({
     where: { id },
     include: {
@@ -105,7 +109,7 @@ export async function getSiteById(id: number) {
     },
   });
 
-  if (!site) return null;
+  if (!site || site.organizationId !== session.organizationId) return null;
 
   return {
     ...site,
@@ -114,6 +118,7 @@ export async function getSiteById(id: number) {
 }
 
 export async function createSite(formData: FormData) {
+  const session = await requireSession();
   const rawData: any = Object.fromEntries(formData);
 
   const validatedData = siteSchema.parse(rawData);
@@ -127,6 +132,8 @@ export async function createSite(formData: FormData) {
       obsoleteReason: validatedData.obsoleteReason,
       folderId: validatedData.folderId,
       metadata: validatedData.metadata ?? Prisma.JsonNull,
+      organizationId: session.organizationId,
+      createdById: session.userId,
     },
   });
 
@@ -135,16 +142,16 @@ export async function createSite(formData: FormData) {
 }
 
 export async function updateSite(id: number, formData: FormData) {
+  const session = await requireSession();
   const rawData: any = Object.fromEntries(formData);
-  console.log(formData);
-  console.log(rawData);
 
   const validatedData = siteSchema.parse(rawData);
 
-  console.log(validatedData);
-
   await prisma.site.update({
-    where: { id },
+    where: {
+      id,
+      organizationId: session.organizationId
+    },
     data: {
       name: validatedData.name,
       description: validatedData.description,
@@ -153,6 +160,7 @@ export async function updateSite(id: number, formData: FormData) {
       obsoleteReason: validatedData.obsoleteReason,
       folderId: validatedData.folderId,
       metadata: validatedData.metadata ?? Prisma.JsonNull,
+      updatedById: session.userId,
     },
   });
 
@@ -161,6 +169,18 @@ export async function updateSite(id: number, formData: FormData) {
 }
 
 export async function deleteSite(id: number) {
+  const session = await requireSession();
+
+  if (session.role === "UTILISATEUR") {
+    throw new Error("Permission insuffisante");
+  }
+
+  const site = await prisma.site.findUnique({
+    where: { id, organizationId: session.organizationId },
+  });
+
+  if (!site) throw new Error("Site non trouvé");
+
   await prisma.site.delete({ where: { id } });
   revalidatePath("/sites");
   redirect("/sites");

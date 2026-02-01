@@ -27,24 +27,82 @@ enum TaskType {
   SOFTWARE_REPLACEMENT
 }
 
+enum UserRole {
+  UTILISATEUR
+  GESTIONNAIRE
+  ADMIN
+}
+
+model Organization {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  createdAt DateTime @default(now())
+
+  users          UserOrganization[]
+  folders        Folder[]
+  tags           Tag[]
+  sites          Site[]
+  tasks          Task[]
+  softwares      Software[]
+  updateSessions UpdateSession[]
+
+  @@map("organizations")
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  username     String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+
+  organizations UserOrganization[]
+
+  @@map("users")
+}
+
+model UserOrganization {
+  userId         Int
+  organizationId Int
+  role           UserRole @default(UTILISATEUR)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@id([userId, organizationId])
+  @@map("user_organizations")
+}
+
 model Folder {
   id             Int             @id @default(autoincrement())
-  name           String          @unique
+  name           String
+  organizationId Int
+  createdById    Int?
+  updatedById    Int?
   createdAt      DateTime        @default(now())
+
+  organization   Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   sites          Site[]
   updateSessions UpdateSession[]
 
+  @@unique([name, organizationId])
+  @@index([organizationId])
   @@map("folders")
 }
 
 model Tag {
   id             Int             @id @default(autoincrement())
-  name           String          @unique
+  name           String
+  organizationId Int
+  createdById    Int?
+  updatedById    Int?
   createdAt      DateTime        @default(now())
+
+  organization   Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   sites          SiteTag[]
   tasks          TaskTag[]
   updateSessions UpdateSession[]
 
+  @@unique([name, organizationId])
+  @@index([organizationId])
   @@map("tags")
 }
 
@@ -60,20 +118,26 @@ model SiteTag {
 
 model Site {
   id              Int       @id @default(autoincrement())
-  name            String    @unique
+  name            String
   description     String?
   iconName        String?
   metadata        Json?
   isObsolete      Boolean   @default(false)
   obsoleteReason  String?
+  organizationId  Int
   folderId        Int?
+  createdById     Int?
+  updatedById     Int?
   folder          Folder?   @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   createdAt       DateTime  @default(now())
   machines        Machine[]
   tags            SiteTag[]
 
+  @@unique([name, organizationId])
   @@index([folderId])
   @@index([isObsolete])
+  @@index([organizationId])
   @@map("sites")
 }
 
@@ -96,14 +160,21 @@ model Machine {
 
 model Software {
   id            Int             @id @default(autoincrement())
-  name          String          @unique
+  name          String
   description   String?
   iconName      String?
   metadata      Json?
+  organizationId Int
+  createdById   Int?
+  updatedById   Int?
   createdAt     DateTime        @default(now())
+
+  organization  Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   installations Installation[]
   updateTasks   UpdateTask[]
 
+  @@unique([name, organizationId])
+  @@index([organizationId])
   @@map("softwares")
 }
 
@@ -129,10 +200,16 @@ model Task {
   type        TaskType      @default(DEFAULT)
   targetType  MachineType   // SERVER ou CLIENT
   iconName    String?
+  organizationId Int
+  createdById Int?
+  updatedById Int?
   createdAt   DateTime      @default(now())
+
+  organization Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   tags        TaskTag[]
   updateTasks UpdateTask[]
 
+  @@index([organizationId])
   @@map("tasks")
 }
 
@@ -150,17 +227,23 @@ model UpdateSession {
   id          Int           @id @default(autoincrement())
   name        String
   description String?
+  organizationId Int
   folderId    Int?
   folder      Folder?       @relation(fields: [folderId], references: [id], onDelete: SetNull)
   tagId       Int?
   tag         Tag?          @relation(fields: [tagId], references: [id], onDelete: SetNull)
+  createdById Int?
+  updatedById Int?
   createdAt   DateTime      @default(now())
   startedAt   DateTime?
   completedAt DateTime?
+
+  organization Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   updateTasks UpdateTask[]
 
   @@index([folderId])
   @@index([tagId])
+  @@index([organizationId])
   @@map("update_sessions")
 }
 
