@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { getSiteById, deleteSite } from "@/lib/actions/sites";
+import { requireSession } from "@/lib/auth/session";
 import { SiteFormDialog } from "@/components/sites/site-form-dialog";
 import { MachineFormDialog } from "@/components/machines/machine-form-dialog";
 import { MachineCard } from "@/components/machines/machine-card";
@@ -27,11 +28,16 @@ export default async function SiteDetailPage({
 }) {
   const { siteId: siteIdParam } = await params;
   const siteId = parseInt(siteIdParam);
-  const site = await getSiteById(siteId);
+  const [site, session] = await Promise.all([
+    getSiteById(siteId),
+    requireSession(),
+  ]);
 
   if (!site) {
     notFound();
   }
+
+  const canDelete = session.role !== 'UTILISATEUR';
 
   return (
     <div>
@@ -127,24 +133,26 @@ export default async function SiteDetailPage({
             }
           />
 
-          <DeleteConfirmation
-            title="Supprimer ce site ?"
-            description="Cette action supprimera le site et toutes ses machines. Cette action est irréversible."
-            onConfirm={async () => {
-              "use server";
-              await deleteSite(siteId);
-            }}
-            trigger={
-              <Button variant="outline">
-                <HugeiconsIcon
-                  icon={Delete02Icon}
-                  strokeWidth={2}
-                  data-icon="inline-start"
-                />
-                Supprimer
-              </Button>
-            }
-          />
+          {canDelete && (
+            <DeleteConfirmation
+              title="Supprimer ce site ?"
+              description="Cette action supprimera le site et toutes ses machines. Cette action est irréversible."
+              onConfirm={async () => {
+                "use server";
+                await deleteSite(siteId);
+              }}
+              trigger={
+                <Button variant="outline">
+                  <HugeiconsIcon
+                    icon={Delete02Icon}
+                    strokeWidth={2}
+                    data-icon="inline-start"
+                  />
+                  Supprimer
+                </Button>
+              }
+            />
+          )}
         </div>
       </div>
 

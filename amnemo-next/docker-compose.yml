@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  amnemo:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: amnemo-app
+    restart: unless-stopped
+    ports:
+      - "${PORT:-3000}:3000"
+    environment:
+      # Base de données (externe - REQUIS)
+      DATABASE_URL: ${DATABASE_URL}
+
+      # Sécurité (REQUIS - à générer manuellement)
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY}
+      JWT_SECRET: ${JWT_SECRET}
+
+      # Configuration app
+      NODE_ENV: production
+      PORT: 3000
+
+      # Admin bootstrap (optionnel - pour scripts CLI uniquement)
+      ADMIN_ORG_NAME: ${ADMIN_ORG_NAME:-DEFAUT}
+      ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-changeme}
+
+    # Volumes pour persistance (optionnel)
+    volumes:
+      # Pour conserver les logs si besoin
+      - ./logs:/app/logs
+
+    # Health check
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/api/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 40s
+
+    # Dépendances
+    depends_on: []
+
+    # Réseau
+    networks:
+      - amnemo-network
+
+networks:
+  amnemo-network:
+    driver: bridge

@@ -36,9 +36,10 @@ interface TasksTableProps {
   tasks: Task[];
   tags: Tag[];
   onDeleteTask: (id: number) => Promise<void>;
+  canDelete?: boolean;
 }
 
-export function TasksTable({ tasks, tags, onDeleteTask }: TasksTableProps) {
+export function TasksTable({ tasks, tags, onDeleteTask, canDelete = true }: TasksTableProps) {
   const [searchName, setSearchName] = useState('');
   const [selectedTagIds, setSelectedTagIds] = useState<number[]>([]);
 
@@ -168,20 +169,22 @@ export function TasksTable({ tasks, tags, onDeleteTask }: TasksTableProps) {
                       </Button>
                     }
                   />
-                  <DeleteConfirmation
-                    title="Supprimer cette tâche ?"
-                    description="Cette action est irréversible."
-                    onConfirm={() => onDeleteTask(task.id)}
-                    trigger={
-                      <Button variant="ghost" size="sm">
-                        <HugeiconsIcon
-                          icon={Delete02Icon}
-                          strokeWidth={2}
-                          className="w-3.5 h-3.5 text-red-500"
-                        />
-                      </Button>
-                    }
-                  />
+                  {canDelete && (
+                    <DeleteConfirmation
+                      title="Supprimer cette tâche ?"
+                      description="Cette action est irréversible."
+                      onConfirm={() => onDeleteTask(task.id)}
+                      trigger={
+                        <Button variant="ghost" size="sm">
+                          <HugeiconsIcon
+                            icon={Delete02Icon}
+                            strokeWidth={2}
+                            className="w-3.5 h-3.5 text-red-500"
+                          />
+                        </Button>
+                      }
+                    />
+                  )}
                 </div>
               </TableCell>
             </TableRow>

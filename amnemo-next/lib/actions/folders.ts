@@ -13,7 +13,7 @@ export async function getFolders() {
     where: { organizationId: session.organizationId },
     include: {
       _count: {
-        select: { sites: true }
+        select: { sites: true, updateSessions: true }
       }
     },
     orderBy: { name: 'asc' }
@@ -87,7 +87,7 @@ export async function updateFolder(id: number, formData: FormData) {
   revalidatePath('/sites');
 }
 
-export async function deleteFolder(id: number) {
+export async function deleteFolder(id: number, skipRedirect = false) {
   const session = await requireSession();
 
   if (session.role === "UTILISATEUR") {
@@ -103,5 +103,9 @@ export async function deleteFolder(id: number) {
   await prisma.folder.delete({ where: { id } });
 
   revalidatePath('/sites');
-  redirect('/sites');
+  revalidatePath('/parametres');
+
+  if (!skipRedirect) {
+    redirect('/sites');
+  }
 }

@@ -33,6 +33,15 @@ enum UserRole {
   ADMIN
 }
 
+model Settings {
+  id              Int      @id @default(1)
+  setupCompleted  Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("settings")
+}
+
 model Organization {
   id        Int      @id @default(autoincrement())
   name      String   @unique

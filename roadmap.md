@@ -91,6 +91,26 @@ Regle simple: si l'utilisateur n'est pas authentifié je redirige vers une page 
 
 ### Avancement
 
-[] EVO - Authentification
-[] Possibilité de changer d'organisation simplement dans la sidebar
-[] question : actuellement le jwt contient le role, côté server action c'est le token qui décide en fonction du role. Pour les affichages je pense c'est bon. Mais côté serveur ne faut il pas appeler la base pour vérifier les informations extraites du token ?
+[x] EVO - Authentification
+[x] Possibilité de changer d'organisation simplement dans la sidebar
+[x] question : actuellement le jwt contient le role, côté server action c'est le token qui décide en fonction du role. Pour les affichages je pense c'est bon. Mais côté serveur ne faut il pas appeler la base pour vérifier les informations extraites du token ?
+
+### Phase 5 - Installation
+
+[] proposer un import via un script pour importer des dossiers, tags, des sites et leurs machines, une liste de logiciels, des tâches, le script doit vraiment bien prendre en compte tout
+[] proposer ensuite une procédure via l'interface de première installation qui donne lieu à la création du premier user ADMIN et de la première organisation
+[] prposer un déploiement en conteneur
+[] adapter le README pour expliquer concrètement comment déployer l'application
+
+### Phase 6 - Vérifications
+
+[x] afficher quelque part sur la sidebar le nom de l'utilisateur connecté
+[x] créer la page parametres manquantes où l'utilisateur connecté peut modifier son mot de passe
+[x] dans la page paramètres si l'utilisateur est minimum 'GESTIONNAIRE', il peut modifier des noms de dossier, et supprimer des dossiers vides*
+[x] dans la page paramètres si l'utilisateur est minimum 'GESTIONNAIRE', il peut modifier des tags, et supprimer des tags vides*
+[x] afficher proprement les erreurs dans une modal d'erreur
+[x] empecher la suppression de site, de taches, de machine si l'utilisateur est un simple 'UTILISATEUR'
+
+## Voir ?
+
+voir:erreur lors de la création de site

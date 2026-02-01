@@ -12,6 +12,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import { useError } from '@/components/error-provider';
 
 interface DeleteConfirmationProps {
   title: string;
@@ -23,6 +24,7 @@ interface DeleteConfirmationProps {
 export function DeleteConfirmation({ title, description, onConfirm, trigger }: DeleteConfirmationProps) {
   const [open, setOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
+  const { showError } = useError();
 
   const handleConfirm = () => {
     startTransition(async () => {
@@ -30,7 +32,8 @@ export function DeleteConfirmation({ title, description, onConfirm, trigger }: D
         await onConfirm();
         setOpen(false);
       } catch (error) {
-        console.error('Delete error:', error);
+        const message = error instanceof Error ? error.message : 'Une erreur est survenue lors de la suppression';
+        showError(message);
       }
     });
   };

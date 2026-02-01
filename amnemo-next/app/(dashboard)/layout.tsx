@@ -9,6 +9,11 @@ export default async function DashboardLayout({
 }) {
   const session = await requireSession();
 
+  const user = await prisma.user.findUnique({
+    where: { id: session.userId },
+    select: { username: true },
+  });
+
   const userOrganizations = await prisma.userOrganization.findMany({
     where: { userId: session.userId },
     include: { organization: true },
@@ -25,6 +30,7 @@ export default async function DashboardLayout({
         organizations={organizations}
         currentOrgId={session.organizationId}
         userRole={session.role}
+        username={user?.username || 'Utilisateur'}
       />
       <main className="flex-1 overflow-auto">
         <div className="container mx-auto py-8 px-6">

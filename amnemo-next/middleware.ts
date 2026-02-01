@@ -5,7 +5,8 @@ import { AUTH_CONFIG } from "./lib/auth/config";
 export async function middleware(request: NextRequest) {
   const token = request.cookies.get(AUTH_CONFIG.cookieName)?.value;
 
-  const publicPaths = ["/login"];
+  // Routes publiques (accessibles sans authentification)
+  const publicPaths = ["/login", "/setup", "/api/setup"];
   const isPublicPath = publicPaths.some(path =>
     request.nextUrl.pathname.startsWith(path)
   );

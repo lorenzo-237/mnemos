@@ -88,6 +88,7 @@ export async function updateTag(id: number, formData: FormData) {
   });
 
   revalidatePath('/sites');
+  revalidatePath('/parametres');
 }
 
 export async function deleteTag(id: number) {
@@ -106,6 +107,7 @@ export async function deleteTag(id: number) {
   await prisma.tag.delete({ where: { id } });
 
   revalidatePath('/sites');
+  revalidatePath('/parametres');
 }
 
 export async function addTagToSite(siteId: number, tagId: number) {

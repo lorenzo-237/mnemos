@@ -1,5 +1,6 @@
 import { getTasks, deleteTask } from "@/lib/actions/tasks";
 import { getTags } from "@/lib/actions/tags";
+import { requireSession } from "@/lib/auth/session";
 import { TaskFormDialog } from "@/components/tasks/task-form-dialog";
 import { TasksTable } from "@/components/tasks/tasks-table";
 import { EmptyState } from "@/components/shared/empty-state";
@@ -8,7 +9,8 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { PlusSignIcon } from "@hugeicons/core-free-icons";
 
 export default async function TasksPage() {
-  const [tasks, tags] = await Promise.all([getTasks(), getTags()]);
+  const [tasks, tags, session] = await Promise.all([getTasks(), getTags(), requireSession()]);
+  const canDelete = session.role !== 'UTILISATEUR';
 
   return (
     <div>
@@ -54,7 +56,7 @@ export default async function TasksPage() {
           }
         />
       ) : (
-        <TasksTable tasks={tasks} tags={tags} onDeleteTask={deleteTask} />
+        <TasksTable tasks={tasks} tags={tags} onDeleteTask={deleteTask} canDelete={canDelete} />
       )}
     </div>
   );

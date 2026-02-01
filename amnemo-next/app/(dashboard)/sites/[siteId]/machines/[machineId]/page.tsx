@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { getMachineById, deleteMachine } from '@/lib/actions/machines';
 import { removeInstallation } from '@/lib/actions/installations';
+import { requireSession } from '@/lib/auth/session';
 import { MachineFormDialog } from '@/components/machines/machine-form-dialog';
 import { MachineTypeBadge } from '@/components/machines/machine-type-badge';
 import { TeamViewerSection } from '@/components/machines/teamviewer-section';
@@ -23,11 +24,16 @@ export default async function MachineDetailPage({
   const { siteId: siteIdParam, machineId: machineIdParam } = await params;
   const machineId = parseInt(machineIdParam);
   const siteId = parseInt(siteIdParam);
-  const machine = await getMachineById(machineId);
+  const [machine, session] = await Promise.all([
+    getMachineById(machineId),
+    requireSession(),
+  ]);
 
   if (!machine) {
     notFound();
   }
+
+  const canDelete = session.role !== 'UTILISATEUR';
 
   return (
     <div>
@@ -62,20 +68,22 @@ export default async function MachineDetailPage({
             }
           />
 
-          <DeleteConfirmation
-            title="Supprimer cette machine ?"
-            description="Cette action supprimera la machine et tout son historique d'installations. Cette action est irréversible."
-            onConfirm={async () => {
-              'use server';
-              await deleteMachine(machineId);
-            }}
-            trigger={
-              <Button variant="outline">
-                <HugeiconsIcon icon={Delete02Icon} strokeWidth={2} data-icon="inline-start" />
-                Supprimer
-              </Button>
-            }
-          />
+          {canDelete && (
+            <DeleteConfirmation
+              title="Supprimer cette machine ?"
+              description="Cette action supprimera la machine et tout son historique d'installations. Cette action est irréversible."
+              onConfirm={async () => {
+                'use server';
+                await deleteMachine(machineId);
+              }}
+              trigger={
+                <Button variant="outline">
+                  <HugeiconsIcon icon={Delete02Icon} strokeWidth={2} data-icon="inline-start" />
+                  Supprimer
+                </Button>
+              }
+            />
+          )}
         </div>
       </div>
 
@@ -147,19 +155,21 @@ export default async function MachineDetailPage({
                         </Button>
                       }
                     />
-                    <DeleteConfirmation
-                      title="Retirer ce logiciel ?"
-                      description="Cette action marquera le logiciel comme retiré dans l'historique."
-                      onConfirm={async () => {
-                        'use server';
-                        await removeInstallation(installation.id, machineId);
-                      }}
-                      trigger={
-                        <Button variant="outline" size="sm">
-                          Retirer
-                        </Button>
-                      }
-                    />
+                    {canDelete && (
+                      <DeleteConfirmation
+                        title="Retirer ce logiciel ?"
+                        description="Cette action marquera le logiciel comme retiré dans l'historique."
+                        onConfirm={async () => {
+                          'use server';
+                          await removeInstallation(installation.id, machineId);
+                        }}
+                        trigger={
+                          <Button variant="outline" size="sm">
+                            Retirer
+                          </Button>
+                        }
+                      />
+                    )}
                   </div>
                 </div>
               </div>

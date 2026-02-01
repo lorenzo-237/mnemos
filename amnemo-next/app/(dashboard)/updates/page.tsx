@@ -1,4 +1,5 @@
 import { getUpdateSessions } from "@/lib/actions/update-sessions";
+import { requireSession } from "@/lib/auth/session";
 import { DeleteConfirmation } from "@/components/shared/delete-confirmation";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Button } from "@/components/ui/button";
@@ -20,7 +21,11 @@ import { formatDistance } from "date-fns";
 import { fr } from "date-fns/locale";
 
 export default async function UpdatesPage() {
-  const sessions = await getUpdateSessions();
+  const [sessions, session] = await Promise.all([
+    getUpdateSessions(),
+    requireSession(),
+  ]);
+  const canDelete = session.role !== 'UTILISATEUR';
 
   return (
     <div>
@@ -149,19 +154,21 @@ export default async function UpdatesPage() {
                             <HugeiconsIcon icon={ViewIcon} strokeWidth={2} />
                           </Button>
                         </Link>
-                        <DeleteConfirmation
-                          title="Supprimer cette session ?"
-                          description="Cette action supprimera toutes les tâches associées. Cette action est irréversible."
-                          onConfirm={async () => {
-                            'use server';
-                            await deleteUpdateSession(session.id);
-                          }}
-                          trigger={
-                            <Button variant="ghost" size="sm">
-                              <HugeiconsIcon icon={Delete02Icon} strokeWidth={2} />
-                            </Button>
-                          }
-                        />
+                        {canDelete && (
+                          <DeleteConfirmation
+                            title="Supprimer cette session ?"
+                            description="Cette action supprimera toutes les tâches associées. Cette action est irréversible."
+                            onConfirm={async () => {
+                              'use server';
+                              await deleteUpdateSession(session.id);
+                            }}
+                            trigger={
+                              <Button variant="ghost" size="sm">
+                                <HugeiconsIcon icon={Delete02Icon} strokeWidth={2} />
+                              </Button>
+                            }
+                          />
+                        )}
                       </div>
                     </TableCell>
                   </TableRow>

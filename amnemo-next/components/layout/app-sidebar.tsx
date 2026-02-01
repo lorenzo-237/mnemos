@@ -30,9 +30,10 @@ interface AppSidebarProps {
   organizations: Array<{ id: number; name: string }>;
   currentOrgId: number;
   userRole: 'UTILISATEUR' | 'GESTIONNAIRE' | 'ADMIN';
+  username: string;
 }
 
-export function AppSidebar({ organizations, currentOrgId, userRole }: AppSidebarProps) {
+export function AppSidebar({ organizations, currentOrgId, userRole, username }: AppSidebarProps) {
   const pathname = usePathname();
 
   return (
@@ -90,8 +91,15 @@ export function AppSidebar({ organizations, currentOrgId, userRole }: AppSidebar
           <LogoutButton />
         </div>
 
+        <div className="p-3 border-t">
+          <p className="text-sm font-medium truncate">{username}</p>
+          <p className="text-xs text-muted-foreground">
+            {userRole === 'ADMIN' ? 'Administrateur' : userRole === 'GESTIONNAIRE' ? 'Gestionnaire' : 'Utilisateur'}
+          </p>
+        </div>
+
         <div className="p-4 border-t text-xs text-muted-foreground">
-          v0.1.0 MVP - Phase 4
+          v0.1.0 MVP - Phase 6
         </div>
       </div>
     </aside>

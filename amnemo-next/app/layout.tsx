@@ -3,6 +3,7 @@ import { Geist, Geist_Mono, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/components/theme-provider";
+import { ErrorProvider } from "@/components/error-provider";
 
 const jetbrainsMono = JetBrains_Mono({subsets:['latin'],variable:'--font-sans'});
 
@@ -37,8 +38,10 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {children}
-          <Toaster />
+          <ErrorProvider>
+            {children}
+            <Toaster />
+          </ErrorProvider>
         </ThemeProvider>
       </body>
     </html>
