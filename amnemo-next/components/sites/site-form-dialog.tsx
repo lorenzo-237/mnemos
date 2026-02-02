@@ -113,10 +113,9 @@ export function SiteFormDialog({ site, trigger }: SiteFormDialogProps) {
           setOpen(false);
           router.refresh();
         } else {
-          await createSite(formData);
+          const siteId = await createSite(formData);
           toast.success("Site créé avec succès");
-          // La redirection est gérée par l'action
-          // Tags will be handled after site creation if needed
+          router.push(`/sites/${siteId}`);
         }
       } catch (error) {
         console.error("Form error:", error);

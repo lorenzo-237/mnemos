@@ -97,10 +97,9 @@ Regle simple: si l'utilisateur n'est pas authentifié je redirige vers une page 
 
 ### Phase 5 - Installation
 
-[] proposer un import via un script pour importer des dossiers, tags, des sites et leurs machines, une liste de logiciels, des tâches, le script doit vraiment bien prendre en compte tout
-[] proposer ensuite une procédure via l'interface de première installation qui donne lieu à la création du premier user ADMIN et de la première organisation
-[] prposer un déploiement en conteneur
-[] adapter le README pour expliquer concrètement comment déployer l'application
+[x] proposer ensuite une procédure via l'interface de première installation qui donne lieu à la création du premier user ADMIN et de la première organisation
+[x] prposer un déploiement en conteneur
+[x] adapter le README pour expliquer concrètement comment déployer l'application
 
 ### Phase 6 - Vérifications
 
@@ -110,7 +109,3 @@ Regle simple: si l'utilisateur n'est pas authentifié je redirige vers une page 
 [x] dans la page paramètres si l'utilisateur est minimum 'GESTIONNAIRE', il peut modifier des tags, et supprimer des tags vides*
 [x] afficher proprement les erreurs dans une modal d'erreur
 [x] empecher la suppression de site, de taches, de machine si l'utilisateur est un simple 'UTILISATEUR'
-
-## Voir ?
-
-voir:erreur lors de la création de site

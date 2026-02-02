@@ -138,7 +138,7 @@ export async function createSite(formData: FormData) {
   });
 
   revalidatePath("/sites");
-  redirect(`/sites/${site.id}`);
+  return site.id;
 }
 
 export async function updateSite(id: number, formData: FormData) {
