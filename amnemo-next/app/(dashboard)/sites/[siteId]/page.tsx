@@ -95,13 +95,13 @@ export default async function SiteDetailPage({
                 <span>•</span>
                 <div className="flex flex-wrap gap-1">
                   {site.tags.map((siteTag) => (
-                    <Badge
+                    <span
                       key={siteTag.tag.id}
-                      variant="secondary"
-                      className="text-xs"
+                      className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium text-white"
+                      style={{ backgroundColor: siteTag.tag.color || '#6B7280' }}
                     >
                       {siteTag.tag.name}
-                    </Badge>
+                    </span>
                   ))}
                 </div>
               </>

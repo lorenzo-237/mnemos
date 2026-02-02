@@ -92,6 +92,7 @@ export const folderSchema = z.object({
 
 export const tagSchema = z.object({
   name: z.string().min(1, "Le nom du tag est requis").max(100),
+  color: z.string().regex(/^#[0-9A-Fa-f]{6}$/, "Couleur hexadécimale invalide").optional().nullable(),
 });
 
 export type UserSchemaData = z.infer<typeof userSchema>;

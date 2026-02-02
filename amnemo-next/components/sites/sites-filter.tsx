@@ -10,7 +10,7 @@ import { FolderIcon, Cancel01Icon, FilterIcon, Search01Icon } from '@hugeicons/c
 
 interface SitesFilterProps {
   folders: Array<{ id: number; name: string }>;
-  tags: Array<{ id: number; name: string }>;
+  tags: Array<{ id: number; name: string; color?: string | null }>;
   selectedFolderIds: number[];
   selectedTagIds: number[];
   searchName: string;
@@ -132,16 +132,30 @@ export function SitesFilter({
             <span className="text-sm font-medium text-muted-foreground">Tags</span>
           </div>
           <div className="flex flex-wrap gap-2">
-            {tags.map((tag) => (
-              <Badge
-                key={tag.id}
-                variant={selectedTagIds.includes(tag.id) ? 'default' : 'secondary'}
-                className="cursor-pointer"
-                onClick={() => handleTagClick(tag.id)}
-              >
-                {tag.name}
-              </Badge>
-            ))}
+            {tags.map((tag) => {
+              const isSelected = selectedTagIds.includes(tag.id);
+              const bgColor = tag.color || '#6B7280';
+              return (
+                <button
+                  key={tag.id}
+                  type="button"
+                  onClick={() => handleTagClick(tag.id)}
+                  className={`
+                    inline-flex items-center px-2.5 py-0.5 rounded-md text-sm font-medium transition-all cursor-pointer
+                    ${isSelected
+                      ? 'text-white shadow-sm'
+                      : 'bg-transparent border-2 hover:opacity-80'
+                    }
+                  `}
+                  style={isSelected
+                    ? { backgroundColor: bgColor }
+                    : { borderColor: bgColor, color: bgColor }
+                  }
+                >
+                  {tag.name}
+                </button>
+              );
+            })}
           </div>
         </div>
       )}

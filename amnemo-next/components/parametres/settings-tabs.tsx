@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { PasswordChangeForm } from './password-change-form';
 import { FoldersManagement } from './folders-management';
 import { TagsManagement } from './tags-management';
+import { DataImport } from './data-import';
 
 interface SettingsTabsProps {
   userRole: 'UTILISATEUR' | 'GESTIONNAIRE' | 'ADMIN';
@@ -19,6 +20,7 @@ export function SettingsTabs({ userRole }: SettingsTabsProps) {
         <TabsTrigger value="profile">Profil</TabsTrigger>
         {canManage && <TabsTrigger value="folders">Dossiers</TabsTrigger>}
         {canManage && <TabsTrigger value="tags">Tags</TabsTrigger>}
+        {canManage && <TabsTrigger value="import">Import</TabsTrigger>}
       </TabsList>
 
       <TabsContent value="profile">
@@ -62,6 +64,22 @@ export function SettingsTabs({ userRole }: SettingsTabsProps) {
             </CardHeader>
             <CardContent>
               <TagsManagement />
+            </CardContent>
+          </Card>
+        </TabsContent>
+      )}
+
+      {canManage && (
+        <TabsContent value="import">
+          <Card>
+            <CardHeader>
+              <CardTitle>Import de données</CardTitle>
+              <CardDescription>
+                Importez des dossiers, tags, logiciels, tâches, sites et machines depuis un fichier JSON
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <DataImport />
             </CardContent>
           </Card>
         </TabsContent>

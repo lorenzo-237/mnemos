@@ -109,3 +109,11 @@ Regle simple: si l'utilisateur n'est pas authentifié je redirige vers une page 
 [x] dans la page paramètres si l'utilisateur est minimum 'GESTIONNAIRE', il peut modifier des tags, et supprimer des tags vides*
 [x] afficher proprement les erreurs dans une modal d'erreur
 [x] empecher la suppression de site, de taches, de machine si l'utilisateur est un simple 'UTILISATEUR'
+
+### Phase 7 -
+
+[x] couleur tag
+[x] proposer un import via un script pour importer des dossiers, tags, des sites et leurs machines, une liste de logiciels, des tâches, le script doit vraiment bien prendre en compte tout
+[x] route API qui retourne la version du logiciel dans package json
+[] modifier le nom d'un logiciel
+[] zod metadonnées d'un logiciel

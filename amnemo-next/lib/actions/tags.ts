@@ -52,6 +52,7 @@ export async function createTag(formData: FormData) {
 
   const rawData = {
     name: formData.get('name') as string,
+    color: formData.get('color') as string || null,
   };
 
   const validated = tagSchema.parse(rawData);
@@ -72,6 +73,7 @@ export async function updateTag(id: number, formData: FormData) {
 
   const rawData = {
     name: formData.get('name') as string,
+    color: formData.get('color') as string || null,
   };
 
   const validated = tagSchema.parse(rawData);

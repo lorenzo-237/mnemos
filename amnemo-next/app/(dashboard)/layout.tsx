@@ -1,6 +1,7 @@
 import { AppSidebar } from '@/components/layout/app-sidebar';
 import { requireSession } from '@/lib/auth/session';
 import { prisma } from '@/lib/prisma';
+import packageJson from '@/package.json';
 
 export default async function DashboardLayout({
   children,
@@ -31,6 +32,7 @@ export default async function DashboardLayout({
         currentOrgId={session.organizationId}
         userRole={session.role}
         username={user?.username || 'Utilisateur'}
+        version={packageJson.version}
       />
       <main className="flex-1 overflow-auto">
         <div className="container mx-auto py-8 px-6">

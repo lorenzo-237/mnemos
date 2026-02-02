@@ -1,0 +1,439 @@
+{
+  "folders": [
+    {
+      "name": "Urgencemed"
+    }
+  ],
+  "tags": [
+    {
+      "name": "urgencemed",
+      "color": "#3B82F6"
+    },
+    {
+      "name": "fermé",
+      "color": "#EF4444"
+    }
+  ],
+  "softwares": [
+    {
+      "name": "Medoc.exe",
+      "publisher": "Urgencemed",
+      "description": "Application principale Med'oc"
+    },
+    {
+      "name": "Urgencemed.wdk",
+      "publisher": "Urgencemed",
+      "description": "Composant Urgencemed"
+    },
+    {
+      "name": "UrgencemedOrdo",
+      "publisher": "Urgencemed",
+      "description": "Module ordonnances Urgencemed"
+    },
+    {
+      "name": "UrgencemedTachePlanifiee.exe",
+      "publisher": "Urgencemed",
+      "description": "Service de tâches planifiées"
+    },
+    {
+      "name": "Medoc Interoperabilite",
+      "publisher": "Urgencemed",
+      "description": "Service d'interopérabilité Medoc"
+    },
+    {
+      "name": "ServicesManager",
+      "publisher": "Urgencemed",
+      "description": "Gestionnaire de services"
+    },
+    {
+      "name": "HaveFunSQL",
+      "publisher": "Urgencemed",
+      "description": "Utilitaire SQL"
+    },
+    {
+      "name": "HfSocketPandalab",
+      "publisher": "Urgencemed",
+      "description": "Service socket Pandalab"
+    },
+    {
+      "name": "PandalabMedocApi.exe",
+      "publisher": "Urgencemed",
+      "description": "API Pandalab pour Medoc"
+    }
+  ],
+  "tasks": {
+    "server": [
+      "Transférer le package de mise à jour",
+      "Installer le package",
+      "Copier les données du packages dans MEDOC Installations\\PATCH",
+      "Copier Urgencemed.wdk dans MEDOC Installations\\composants",
+      "Copier Medoc.exe dans MEDOC Installations\\PATCH",
+      "Copier UrgencemedTachePlanifiee.exe dans C:\\Medoc",
+      "Arrêter le service HfSocketPandalab",
+      "Redémarrer le service HfSocketPandalab",
+      "Arrêter le service MedocInteroperabilité",
+      "Redémarrer le service MedocInteroperabilité",
+      "Arrêter le service PandalabMedocApi.exe",
+      "Redémarrer le service PandalabMedocApi.exe"
+    ],
+    "client": [
+      "Lancer Medoc.exe pour récupérer la mise à jour depuis le serveur"
+    ]
+  },
+  "sites": [
+    {
+      "name": "AIX",
+      "folder": "Urgencemed",
+      "tags": ["urgencemed"],
+      "metadata": {
+        "codeSap": "22cl",
+        "nomStructure": null,
+        "codeRevendeur": null,
+        "admin": "SANTECIE\\svc_urgm_aix_hopital",
+        "export": "medoc-hf-pg urgencemed-hf-pg",
+        "import": null
+      },
+      "machines": [
+        {
+          "name": "SRV-AIX",
+          "type": "SERVER"
+        }
+      ]
+    },
+    {
+      "name": "AVIGNON",
+      "folder": "Urgencemed",
+      "tags": ["urgencemed"],
+      "metadata": {
+        "codeSap": "22cd",
+        "nomStructure": null,
+        "codeRevendeur": null,
+        "admin": "SANTECIE\\svc_urgm_avi_struf",
+        "export": "medoc-hf-pg urgencemed-hf-pg",
+        "import": null
+      },
+      "machines": [
+        {
+          "name": "SRV-AVIGNON",
+          "type": "SERVER"
+        }
+      ]
+    },
+    {
+      "name": "BORDEAUX",
+      "folder": "Urgencemed",
+      "tags": ["urgencemed"],
+      "metadata": {
+        "codeSap": "22ck",
+        "nomStructure": "URGENCEMED BORDEAUX BEGLES",
+        "codeRevendeur": "SANTECIE21",
+        "admin": "SANTECIE\\svc_urgm_bod_begles",
+        "export": "medoc-hf-pg urgencemed-hf-pg",
+        "import": "import-pds"
+      },
+      "machines": [
+        {
+          "name": "SRV-BORDEAUX",
+          "type": "SERVER"
+        }
+      ]
+    },
+    {
+      "name": "CRETEIL",
+      "folder": "Urgencemed",
+      "tags": ["urgencemed"],
+      "metadata": {
+        "codeSap": "22ci",
+        "nomStructure": null,
+        "codeRevendeur": null,
+        "admin": "SANTECIE\\svc_urgm_cte_creteil",
+        "export": "medoc-hf-pg urgencemed-hf-pg",
+        "import": "import-pds"
+      },
+      "machines": [
+        {
+          "name": "SRV-CRETEIL",
+          "type": "SERVER"
+        }
+      ]
+    },
+    {
+      "name": "LILLE",
+      "folder": "Urgencemed",
+      "tags": ["urgencemed"],
+      "metadata": {
+        "codeSap": "22cn",
+        "nomStructure": null,
+        "codeRevendeur": null,
+        "admin": "SANTECIE\\svc_urgm_lle_beauxar",
+        "export": "medoc-hf-pg urgencemed-hf-pg",
+        "import": "import-pds"
+      },
+      "machines": [
+        {
+          "name": "SRV-LILLE",
+          "type": "SERVER"
+        }
+      ]
+    },
+    {
+      "name": "MARSEILLE CASTELLANE",
+      "folder": "Urgencemed",
+      "tags": ["urgencemed"],
+      "metadata": {
+        "codeSap": "22cc",
+        "nomStructure": null,
+        "codeRevendeur": null,
+        "admin": "SANTECIE\\svc_urgm_mrs_castel",
+        "export": "medoc-hf-pg urgencemed-hf-pg",
+        "import": null
+      },
+      "machines": [
+        {
+          "name": "SRV-MARSEILLE-CASTELLANE",
+          "type": "SERVER"
+        }
+      ]
+    },
+    {
+      "name": "MARSEILLE ESTAQUE",
+      "folder": "Urgencemed",
+      "tags": ["urgencemed"],
+      "metadata": {
+        "codeSap": "22cb",
+        "nomStructure": null,
+        "codeRevendeur": null,
+        "admin": "SANTECIE\\svc_urgm_mrs_estaq",
+        "export": "medoc-hf-pg urgencemed-hf-pg",
+        "import": null
+      },
+      "machines": [
+        {
+          "name": "SRV-MARSEILLE-ESTAQUE",
+          "type": "SERVER"
+        }
+      ]
+    },
+    {
+      "name": "MARSEILLE ST ANTOINE",
+      "folder": "Urgencemed",
+      "tags": ["urgencemed"],
+      "metadata": {
+        "codeSap": "22cg",
+        "nomStructure": null,
+        "codeRevendeur": null,
+        "admin": "SANTECIE\\svc_urgm_mrs_stanto",
+        "export": "medoc-hf-pg urgencemed-hf-pg",
+        "import": null
+      },
+      "machines": [
+        {
+          "name": "SRV-MARSEILLE-ST-ANTOINE",
+          "type": "SERVER"
+        }
+      ]
+    },
+    {
+      "name": "MARSEILLE ST JUST",
+      "folder": "Urgencemed",
+      "tags": ["urgencemed"],
+      "metadata": {
+        "codeSap": "22ca",
+        "nomStructure": "URGENCEMED ST JUST",
+        "codeRevendeur": "VISION13",
+        "admin": "SANTECIE\\svc_urgm_mrs_stjust",
+        "export": "medoc-hf-pg urgencemed-hf-pg",
+        "import": "export-pds"
+      },
+      "machines": [
+        {
+          "name": "SRV-MARSEILLE-ST-JUST",
+          "type": "SERVER"
+        }
+      ]
+    },
+    {
+      "name": "MONTPELLIER",
+      "folder": "Urgencemed",
+      "tags": ["urgencemed"],
+      "metadata": {
+        "codeSap": "22ce",
+        "nomStructure": null,
+        "codeRevendeur": null,
+        "admin": "SANTECIE\\svc_urgm_mpl_estano",
+        "export": "medoc-hf-pg urgencemed-hf-pg",
+        "import": "import-pds"
+      },
+      "machines": [
+        {
+          "name": "SRV-MONTPELLIER",
+          "type": "SERVER"
+        }
+      ]
+    },
+    {
+      "name": "PARIS 19",
+      "folder": "Urgencemed",
+      "tags": ["urgencemed"],
+      "metadata": {
+        "codeSap": "22cj",
+        "nomStructure": null,
+        "codeRevendeur": null,
+        "admin": "SANTECIE\\svc_urgm_par_paris19",
+        "export": "medoc-hf-pg urgencemed-hf-pg",
+        "import": "import-pds"
+      },
+      "machines": [
+        {
+          "name": "SRV-PARIS-19",
+          "type": "SERVER"
+        }
+      ]
+    },
+    {
+      "name": "PARIS NECKER",
+      "folder": "Urgencemed",
+      "tags": ["urgencemed"],
+      "metadata": {
+        "codeSap": "22ct",
+        "nomStructure": null,
+        "codeRevendeur": null,
+        "admin": "SANTECIE\\svc_urgm_par_necker",
+        "export": "medoc-hf-pg urgencemed-hf-pg",
+        "import": "import-pds"
+      },
+      "machines": [
+        {
+          "name": "SRV-PARIS-NECKER",
+          "type": "SERVER"
+        }
+      ]
+    },
+    {
+      "name": "SEYNE SUR MER",
+      "folder": "Urgencemed",
+      "tags": ["urgencemed"],
+      "metadata": {
+        "codeSap": "22ch",
+        "nomStructure": null,
+        "codeRevendeur": null,
+        "admin": "SANTECIE\\svc_urgm_yne_lery",
+        "export": "medoc-hf-pg urgencemed-hf-pg",
+        "import": null
+      },
+      "machines": [
+        {
+          "name": "SRV-SEYNE-SUR-MER",
+          "type": "SERVER"
+        }
+      ]
+    },
+    {
+      "name": "STRASBOURG",
+      "folder": "Urgencemed",
+      "tags": ["urgencemed"],
+      "metadata": {
+        "codeSap": "22cq",
+        "nomStructure": null,
+        "codeRevendeur": null,
+        "admin": "SANTECIE\\svc_urgm_sxb_primmol",
+        "export": "medoc-hf-pg urgencemed-hf-pg",
+        "import": "import-pds"
+      },
+      "machines": [
+        {
+          "name": "SRV-STRASBOURG",
+          "type": "SERVER"
+        }
+      ]
+    },
+    {
+      "name": "DECINES",
+      "folder": "Urgencemed",
+      "tags": ["urgencemed"],
+      "metadata": {
+        "codeSap": "22cu",
+        "nomStructure": "URGENCEMED DECINES",
+        "codeRevendeur": null,
+        "admin": null,
+        "export": "medoc-hf-pg urgencemed-hf-pg",
+        "import": "import-pds"
+      },
+      "machines": [
+        {
+          "name": "SRV-DECINES",
+          "type": "SERVER"
+        },
+        {
+          "name": "CLI-DECINES-INF",
+          "type": "CLIENT"
+        },
+        {
+          "name": "CLI-DECINES-DOC1",
+          "type": "CLIENT"
+        },
+        {
+          "name": "CLI-DECINES-DOC2",
+          "type": "CLIENT"
+        }
+      ]
+    },
+    {
+      "name": "ROUEN",
+      "folder": "Urgencemed",
+      "tags": ["urgencemed", "fermé"],
+      "metadata": {
+        "codeSap": "22cm",
+        "nomStructure": null,
+        "codeRevendeur": null,
+        "admin": null,
+        "export": null,
+        "import": null
+      },
+      "machines": [
+        {
+          "name": "SRV-ROUEN",
+          "type": "SERVER"
+        }
+      ]
+    },
+    {
+      "name": "NIMES",
+      "folder": "Urgencemed",
+      "tags": ["urgencemed", "fermé"],
+      "metadata": {
+        "codeSap": "22cf",
+        "nomStructure": null,
+        "codeRevendeur": null,
+        "admin": null,
+        "export": null,
+        "import": null
+      },
+      "machines": [
+        {
+          "name": "SRV-NIMES",
+          "type": "SERVER"
+        }
+      ]
+    },
+    {
+      "name": "DIJON",
+      "folder": "Urgencemed",
+      "tags": ["urgencemed", "fermé"],
+      "metadata": {
+        "codeSap": "22co",
+        "nomStructure": null,
+        "codeRevendeur": null,
+        "admin": "SANTECIE\\svc_urgm_dij_pouil",
+        "export": "medoc-hf-pg urgencemed-hf-pg",
+        "import": null
+      },
+      "machines": [
+        {
+          "name": "SRV-DIJON",
+          "type": "SERVER"
+        }
+      ]
+    }
+  ]
+}

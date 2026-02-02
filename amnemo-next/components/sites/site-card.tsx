@@ -26,6 +26,7 @@ interface SiteWithMachines {
     tag: {
       id: number;
       name: string;
+      color?: string | null;
     };
   }>;
   machines: Array<{
@@ -83,9 +84,13 @@ export function SiteCard({ site }: { site: SiteWithMachines }) {
                 </Badge>
               )}
               {site.tags?.map((siteTag) => (
-                <Badge key={siteTag.tag.id} variant="secondary" className="text-xs">
+                <span
+                  key={siteTag.tag.id}
+                  className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium text-white"
+                  style={{ backgroundColor: siteTag.tag.color || '#6B7280' }}
+                >
                   {siteTag.tag.name}
-                </Badge>
+                </span>
               ))}
             </div>
           )}

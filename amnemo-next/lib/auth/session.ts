@@ -1,4 +1,5 @@
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 import { verifyToken, type JwtPayload } from "./jwt";
 import { AUTH_CONFIG } from "./config";
 import { prisma } from "@/lib/prisma";
@@ -13,7 +14,7 @@ export async function getSession(): Promise<JwtPayload | null> {
 export async function requireSession(): Promise<JwtPayload> {
   const session = await getSession();
   if (!session) {
-    throw new Error("Non authentifié");
+    redirect("/login");
   }
 
   // Vérifier en base que l'utilisateur a toujours accès à l'organisation
@@ -32,7 +33,8 @@ export async function requireSession(): Promise<JwtPayload> {
   });
 
   if (!userOrg) {
-    throw new Error("Accès révoqué - Veuillez vous reconnecter");
+    // Accès révoqué : rediriger vers logout qui supprime le cookie et redirige vers login
+    redirect("/api/auth/logout");
   }
 
   // IMPORTANT: Utiliser le rôle de la base de données, pas celui du JWT

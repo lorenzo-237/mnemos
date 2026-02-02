@@ -1,6 +1,6 @@
 {
   "name": "amnemo",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -10,7 +10,8 @@
     "create-admin": "tsx scripts/create-admin.ts",
     "migrate-roles": "tsx scripts/migrate-roles-to-user-org.ts",
     "generate": "npx prisma generate",
-    "migrate": "npx prisma migrate dev"
+    "migrate": "npx prisma migrate dev",
+    "deploy": "npx prisma migrate deploy"
   },
   "dependencies": {
     "@base-ui/react": "^1.1.0",

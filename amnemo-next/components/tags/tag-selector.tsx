@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { getTags } from '@/lib/actions/tags';
 import { HugeiconsIcon } from '@hugeicons/react';
@@ -14,7 +13,7 @@ interface TagSelectorProps {
 }
 
 export function TagSelector({ selectedTagIds, onChange, label = "Tags" }: TagSelectorProps) {
-  const [availableTags, setAvailableTags] = useState<Array<{ id: number; name: string }>>([]);
+  const [availableTags, setAvailableTags] = useState<Array<{ id: number; name: string; color: string | null }>>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -56,18 +55,30 @@ export function TagSelector({ selectedTagIds, onChange, label = "Tags" }: TagSel
       <div className="flex flex-wrap gap-2">
         {availableTags.map((tag) => {
           const isSelected = selectedTagIds.includes(tag.id);
+          const bgColor = tag.color || '#6B7280';
+
           return (
-            <Badge
+            <button
               key={tag.id}
-              variant={isSelected ? "default" : "outline"}
-              className="cursor-pointer"
+              type="button"
               onClick={() => toggleTag(tag.id)}
+              className={`
+                inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-sm font-medium transition-all
+                ${isSelected
+                  ? 'text-white shadow-sm'
+                  : 'bg-transparent border-2 hover:opacity-80'
+                }
+              `}
+              style={isSelected
+                ? { backgroundColor: bgColor }
+                : { borderColor: bgColor, color: bgColor }
+              }
             >
               {tag.name}
               {isSelected && (
-                <HugeiconsIcon icon={Cancel01Icon} strokeWidth={2} className="ml-1 w-3 h-3" />
+                <HugeiconsIcon icon={Cancel01Icon} strokeWidth={2} className="w-3 h-3" />
               )}
-            </Badge>
+            </button>
           );
         })}
       </div>

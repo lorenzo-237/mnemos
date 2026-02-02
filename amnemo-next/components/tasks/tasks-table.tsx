@@ -24,12 +24,13 @@ interface Task {
   type: 'DEFAULT' | 'SOFTWARE_REPLACEMENT';
   targetType: 'SERVER' | 'CLIENT';
   iconName?: string | null;
-  tags: Array<{ tag: { id: number; name: string } }>;
+  tags: Array<{ tag: { id: number; name: string; color?: string | null } }>;
 }
 
 interface Tag {
   id: number;
   name: string;
+  color?: string | null;
 }
 
 interface TasksTableProps {
@@ -78,16 +79,30 @@ export function TasksTable({ tasks, tags, onDeleteTask, canDelete = true }: Task
       {tags.length > 0 && (
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-sm text-muted-foreground">Filtrer par tag :</span>
-          {tags.map((tag) => (
-            <Badge
-              key={tag.id}
-              variant={selectedTagIds.includes(tag.id) ? 'default' : 'outline'}
-              className="cursor-pointer select-none"
-              onClick={() => toggleTag(tag.id)}
-            >
-              {tag.name}
-            </Badge>
-          ))}
+          {tags.map((tag) => {
+            const isSelected = selectedTagIds.includes(tag.id);
+            const bgColor = tag.color || '#6B7280';
+            return (
+              <button
+                key={tag.id}
+                type="button"
+                onClick={() => toggleTag(tag.id)}
+                className={`
+                  inline-flex items-center px-2.5 py-0.5 rounded-md text-sm font-medium transition-all cursor-pointer select-none
+                  ${isSelected
+                    ? 'text-white shadow-sm'
+                    : 'bg-transparent border-2 hover:opacity-80'
+                  }
+                `}
+                style={isSelected
+                  ? { backgroundColor: bgColor }
+                  : { borderColor: bgColor, color: bgColor }
+                }
+              >
+                {tag.name}
+              </button>
+            );
+          })}
           {selectedTagIds.length > 0 && (
             <button
               className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-4"
@@ -152,9 +167,13 @@ export function TasksTable({ tasks, tags, onDeleteTask, canDelete = true }: Task
                 ) : (
                   <div className="flex flex-wrap gap-1">
                     {task.tags.map((tt) => (
-                      <Badge key={tt.tag.id} variant="secondary" className="text-xs">
+                      <span
+                        key={tt.tag.id}
+                        className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium text-white"
+                        style={{ backgroundColor: tt.tag.color || '#6B7280' }}
+                      >
                         {tt.tag.name}
-                      </Badge>
+                      </span>
                     ))}
                   </div>
                 )}

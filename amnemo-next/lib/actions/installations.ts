@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/prisma';
+import { requireSession } from '@/lib/auth/session';
 import { installationSchema, updateSoftwareSchema } from '@/lib/validators';
 
 export async function getActiveInstallations(machineId: number) {
@@ -24,17 +25,25 @@ export async function getInstallationHistory(machineId: number) {
 }
 
 export async function addInstallation(machineId: number, formData: FormData) {
+  const session = await requireSession();
   const rawData = Object.fromEntries(formData);
   const validatedData = installationSchema.parse(rawData);
 
-  // Chercher le logiciel de manière case-insensitive
+  // Chercher le logiciel de manière case-insensitive dans l'organisation
   let software = await prisma.software.findFirst({
-    where: { name: { contains: validatedData.softwareName, mode: 'insensitive' } }
+    where: {
+      name: { contains: validatedData.softwareName, mode: 'insensitive' },
+      organizationId: session.organizationId
+    }
   });
 
   if (!software) {
     software = await prisma.software.create({
-      data: { name: validatedData.softwareName }
+      data: {
+        name: validatedData.softwareName,
+        organizationId: session.organizationId,
+        createdById: session.userId
+      }
     });
   }
 

@@ -10,7 +10,6 @@ import {
   PlusSignIcon,
   Delete02Icon,
   FolderIcon,
-  TagIcon,
   PlayIcon,
   CheckmarkCircleIcon,
   ViewIcon
@@ -129,10 +128,12 @@ export default async function UpdatesPage() {
                           </div>
                         )}
                         {session.tag && (
-                          <div className="flex items-center gap-1 text-xs">
-                            <HugeiconsIcon icon={TagIcon} strokeWidth={2} className="w-3 h-3" />
-                            <span>{session.tag.name}</span>
-                          </div>
+                          <span
+                            className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium text-white"
+                            style={{ backgroundColor: session.tag.color || '#6B7280' }}
+                          >
+                            {session.tag.name}
+                          </span>
                         )}
                         {!session.folder && !session.tag && (
                           <span className="text-xs text-muted-foreground">-</span>

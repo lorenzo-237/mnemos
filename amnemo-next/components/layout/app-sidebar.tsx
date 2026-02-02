@@ -31,9 +31,10 @@ interface AppSidebarProps {
   currentOrgId: number;
   userRole: 'UTILISATEUR' | 'GESTIONNAIRE' | 'ADMIN';
   username: string;
+  version: string;
 }
 
-export function AppSidebar({ organizations, currentOrgId, userRole, username }: AppSidebarProps) {
+export function AppSidebar({ organizations, currentOrgId, userRole, username, version }: AppSidebarProps) {
   const pathname = usePathname();
 
   return (
@@ -99,7 +100,7 @@ export function AppSidebar({ organizations, currentOrgId, userRole, username }: 
         </div>
 
         <div className="p-4 border-t text-xs text-muted-foreground">
-          v0.1.0 MVP - Phase 6
+          v{version}
         </div>
       </div>
     </aside>
